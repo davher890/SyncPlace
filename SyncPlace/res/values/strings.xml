@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SyncPlace</string>
+    <string name="BotonListaLugares">Lista de Lugares</string>
+    <string name="BotonMapa">Mapa</string>
+    <string name="TextLatitud">Latitud: </string>
+    <string name="TextLongitud">Longitud: </string>
+    <string name="BotonVolver">Volver</string>
+    <string name="TextDescripcion">Descripcion:</string>
+    <string name="TextNombre">Nombre:</string>
+    <string name="TextTipo">Tipo: </string><string name="textfoto">Foto:</string>
+    <string name="guardar">Guardar</string>
+    <string name="eliminar">Eliminar</string>
+    <string name="editar">Editar</string>
+    
+  
+</resources>

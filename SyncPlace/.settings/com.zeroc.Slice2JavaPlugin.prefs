@@ -1,0 +1,9 @@
+#Thu Apr 26 19:04:15 CEST 2012
+console=true
+eclipse.preferences.version=1
+ice=true
+iceIncludes=true
+includes=slice/Sagaz;slice/Sagaz/MLP;slice
+sliceSourceDirs=slice;slice/Sagaz;slice/Sagaz/MLP
+stream=true
+tie=true

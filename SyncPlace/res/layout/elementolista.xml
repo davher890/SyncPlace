@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/LblTitulo"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="20dip"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/LblSubTitulo"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="15dip"
+        android:textStyle="normal" />
+    
+    <View
+        android:id="@+id/Divider"
+        android:layout_width="fill_parent"
+        android:layout_height="3dp"
+        android:background="#088A29" />
+
+</LinearLayout>
