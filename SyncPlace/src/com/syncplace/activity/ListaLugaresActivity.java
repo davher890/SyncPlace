@@ -64,7 +64,7 @@ public class ListaLugaresActivity extends Activity {
 				etTipo.setText(l.getTipo());
 				
 		        ErrorDialogFragment alert = new ErrorDialogFragment();
-		        alert.createDialogLugar(contexto, v).show(); 
+		        alert.createDialogLugar(contexto, v, "").show(); 
 	    	} 	        
 	    });    
 	}

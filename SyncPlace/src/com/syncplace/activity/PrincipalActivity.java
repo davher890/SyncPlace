@@ -90,7 +90,7 @@ public class PrincipalActivity extends Activity {
 			
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				Intent i = new Intent(PrincipalActivity.this, Servicios.class);
+				Intent i = new Intent(PrincipalActivity.this, ServiciosActivity.class);
 				startActivity(i);
 			}
 		});

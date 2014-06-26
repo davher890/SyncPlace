@@ -1,9 +1,30 @@
 package com.syncplace.activity;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URLEncoder;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Locale;
+
+import oauth.signpost.OAuthConsumer;
+import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
+import oauth.signpost.exception.OAuthCommunicationException;
+import oauth.signpost.exception.OAuthExpectationFailedException;
+import oauth.signpost.exception.OAuthMessageSignerException;
+import oauth.signpost.signature.HmacSha1MessageSigner;
+import oauth.signpost.signature.QueryStringSigningStrategy;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.app.Activity;
 import android.app.Dialog;
@@ -37,14 +58,17 @@ import com.google.android.gms.location.LocationClient;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMarkerClickListener;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.VisibleRegion;
 import com.google.android.maps.MapController;
 import com.syncplace.ErrorDialogFragment;
 import com.syncplace.ListaPuntos;
@@ -53,8 +77,15 @@ import com.syncplace.R;
 import com.syncplace.SensorDB;
 
 public class MapaLugaresActivity extends FragmentActivity implements
-GooglePlayServicesClient.ConnectionCallbacks, 
-GooglePlayServicesClient.OnConnectionFailedListener{
+	GooglePlayServicesClient.ConnectionCallbacks, 
+	GooglePlayServicesClient.OnConnectionFailedListener, OnCameraChangeListener{
+		
+	public final String CONSUMER_KEY = "g8e8XleY3fOygTjFaCHsMA"; 
+    public final String CONSUMER_SECRET = "HoqxWudi4mdqOR4-skgt9N_XuBs"; 
+    public final String TOKEN = "-jmUm2NVi1feTQsd_9gyoCZxCvuauwc8"; 
+    public final String TOKEN_SECRET = "s_z5V6etkD3M8soELkw-vJ_N_Ng"; 
+    public final String YWSID = "iXUUomsyqBkdXaypz7539A"; 
+    public final String ENCODING_SCHEME = "UTF-8"; 
 	
 	/****** Utilizado solo para mostrar mi posici√≥n ******/
 	private SupportMapFragment mapFragment;
@@ -78,11 +109,14 @@ GooglePlayServicesClient.OnConnectionFailedListener{
     MapController mc;
     Geocoder geoCoder;
     
-    ListaPuntos listaGP;
     ListaPuntos listaGPaux; 
+    ListaPuntos listaGP;
 	
 	final DecimalFormat decf = new DecimalFormat("###.####");
     private boolean isEditMode = false;
+    
+    //Parametros para oblener la lista de servicios 
+    String servicio = null;
 	    
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -92,10 +126,8 @@ GooglePlayServicesClient.OnConnectionFailedListener{
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         
         mLocationClient = new LocationClient(this, this, this);
-
         mapFragment = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map));
         map = mapFragment.getMap();
-
         map.setMyLocationEnabled(true);
         
         //FrameLayout superior Principal
@@ -122,27 +154,43 @@ GooglePlayServicesClient.OnConnectionFailedListener{
         	else{
         		//Marcamos lugares en el mapa
         		orig = false;
-            	
-        		String clase = contenedor.getString("clase");
+        		servicio = contenedor.getString("servicio");
+        		/*String clase = contenedor.getString("clase");
+        		latitud = contenedor.getString("latitud");
+        		longitud = contenedor.getString("longitud");
+        		servicio = contenedor.getString("servicio");
         		
-    	        listaGP = contenedor.getParcelable("gplist");
-    	        if (listaGP == null || listaGP.size() == 0)
-    	        	System.out.println("No hay lista de puntos que pintar");
-    	        else{
-    	        	for (int i=0;i<listaGP.size();i++){
-    	        		LatLng pos = new LatLng(listaGP.get(i).getLatitud(),listaGP.get(i).getLongitud());
-    	        		
-    	        		if (clase.equals("servicios"))
-    	        			setMarker(pos, listaGP.get(i).getNombre(), listaGP.get(i).getDescripcion(),BitmapDescriptorFactory.fromResource(R.drawable.tick));
-    	        			 
-    	        		else //Creo la ruta
-    	        			setMarker(pos, listaGP.get(i).getNombre(), listaGP.get(i).getDescripcion(),BitmapDescriptorFactory.fromResource(R.drawable.posicion));
-    	        	}
-    	        }
+    	        ListaPuntos listaGP = callYelp(latitud, longitud, servicio);
+	        	for (int i=0;i<listaGP.size();i++){
+	        		LatLng pos = new LatLng(listaGP.get(i).getLatitud(),listaGP.get(i).getLongitud());
+	        		
+	        		else //Creo la ruta
+	        			setMarker(pos, listaGP.get(i).getNombre(), listaGP.get(i).getDescripcion(),BitmapDescriptorFactory.fromResource(R.drawable.posicion));
+	        	}*/
         	}
         }
         
-        /***************************************************************/
+        map.setOnCameraChangeListener(new OnCameraChangeListener() {
+
+            private float currentZoom = -1;
+
+            @Override
+            public void onCameraChange(CameraPosition pos) {
+                if (pos.zoom != currentZoom && servicio != null){
+                    currentZoom = pos.zoom;
+                    Log.i("ZOOM", String.valueOf(currentZoom));
+                    float radio = calculateZoomLevel_to_Radius();                    
+                    Location location = mLocationClient.getLastLocation();                                		
+        	        listaGP = callYelp(location.getLatitude(), location.getLongitude(), servicio, radio);
+    	        	for (int i=0;i<listaGP.size();i++){
+    	        		LatLng posi = new LatLng(listaGP.get(i).getLatitud(),listaGP.get(i).getLongitud());
+    	        		setMarker(posi, listaGP.get(i).getNombre(), listaGP.get(i).getDescripcion(),BitmapDescriptorFactory.fromResource(R.drawable.tick));
+    	        	}
+                    
+                }
+            }
+        });
+        
         map.setOnMarkerClickListener(new OnMarkerClickListener() {
 
 			@Override
@@ -180,7 +228,7 @@ GooglePlayServicesClient.OnConnectionFailedListener{
 				etTipo.setText(l.getTipo());
 				
 		        ErrorDialogFragment alert = new ErrorDialogFragment();
-		        alert.createDialogLugar(contexto, v).show();
+		        alert.createDialogLugar(contexto, v, "").show();
 				
 		        return true;
 			}
@@ -191,7 +239,7 @@ GooglePlayServicesClient.OnConnectionFailedListener{
                 
                 Intent i;
                 if (orig == true){
-	    			i = new Intent(contexto, Servicios.class);		    		
+	    			i = new Intent(contexto, ServiciosActivity.class);		    		
 		            Bundle contenedor=new Bundle();
 		            contenedor.putDouble("latitud", point.latitude);
 		            contenedor.putDouble("longitud", point.longitude);
@@ -211,7 +259,7 @@ GooglePlayServicesClient.OnConnectionFailedListener{
 					etLon.setText(String.valueOf(point.longitude));
 					
 			        ErrorDialogFragment alert = new ErrorDialogFragment();
-			        alert.createDialogLugar(contexto, v).show();
+			        alert.createDialogLugar(contexto, v,"øDesea almacenar este lugar?").show();
 	    		}
             }
         });
@@ -464,5 +512,112 @@ GooglePlayServicesClient.OnConnectionFailedListener{
 	    mLocationClient.disconnect();
 	    super.onStop();
 	}
-    
+	
+	private float calculateZoomLevel_to_Radius() {
+		VisibleRegion vr = map.getProjection().getVisibleRegion();
+		double left = vr.latLngBounds.southwest.longitude;
+		double top = vr.latLngBounds.northeast.latitude;
+		double right = vr.latLngBounds.northeast.longitude;
+		double bottom = vr.latLngBounds.southwest.latitude;
+		
+		Location middleLeftCornerLocation = new Location("middleLeftcorner");//(center's latitude,vr.latLngBounds.southwest.longitude)
+		middleLeftCornerLocation.setLatitude(vr.latLngBounds.getCenter().latitude);
+		middleLeftCornerLocation.setLongitude(left);
+		
+		Location center=new Location("center");
+		center.setLatitude( vr.latLngBounds.getCenter().latitude);
+		center.setLongitude( vr.latLngBounds.getCenter().longitude);
+		return center.distanceTo(middleLeftCornerLocation);//calculate distane between middleLeftcorner and center 
+	}
+	
+	private ListaPuntos callYelp(double latitud, double longitud, String servicio, float radius) {
+		
+		ListaPuntos listagp = null;
+		
+		String limit = "20"; 
+		try { 
+			String query = String.format(
+		    "http://api.yelp.com/v2/search?ll=%s&category_filter=%s&radius_filter=%s&limit=%s", 
+		    URLEncoder.encode(latitud + "," + longitud, ENCODING_SCHEME), 
+		    URLEncoder.encode(servicio, ENCODING_SCHEME), 
+		    URLEncoder.encode(String.valueOf(radius), ENCODING_SCHEME), 
+		    URLEncoder.encode(limit, ENCODING_SCHEME));
+			
+		    OAuthConsumer consumer = new CommonsHttpOAuthConsumer(CONSUMER_KEY, CONSUMER_SECRET); 
+		    consumer.setMessageSigner(new HmacSha1MessageSigner());
+		    consumer.setTokenWithSecret(TOKEN, TOKEN_SECRET);
+		    consumer.setSendEmptyTokens(true); 
+		    consumer.setSigningStrategy(new QueryStringSigningStrategy());
+		    
+		    String signedQuery = consumer.sign(query);
+		    HttpGet request = new HttpGet(signedQuery); 
+		    HttpClient httpClient = new DefaultHttpClient(); 
+		    HttpResponse response = (HttpResponse) httpClient.execute(request); 
+
+		    HttpEntity entity = ((org.apache.http.HttpResponse) response).getEntity(); 
+		    String result = EntityUtils.toString(entity); 		    
+		    
+		    /**************************************************************************/
+		    JSONObject respJSON = null;
+			try {
+				respJSON = new JSONObject(result);
+			              
+	            JSONArray businesses = respJSON.getJSONArray("businesses");
+	            listagp = new ListaPuntos();
+	            
+	            for (int i=0;i<businesses.length();i++){            	
+	            	JSONObject jsonObject = businesses.getJSONObject(i);
+	            	
+	            	JSONObject location = jsonObject.getJSONObject("location");
+	            	JSONObject coordinate = location.getJSONObject("coordinate");
+	            	
+	            		            	
+	            	String nombre = jsonObject.getString("name");           	
+	            	
+	            	String desc = "DirecciÛn: "+location.getString("address")+
+	            				  "\nCiudad: "+location.getString("city")+
+	            				  //"\nPais: "+location.getString("country")+
+	            				  "\nDistancia: "+jsonObject.getString("distance")+
+	            				  "\nUrl: "+jsonObject.getString("url")+
+	            				  "\nUrl mÛvil: "+jsonObject.getString("mobile_url")+
+	            				  "\nCerrado: "+jsonObject.getString("is_closed")/*+
+	            				  "\nTelÈfono: "+jsonObject.getString("phone")*/;
+	            	Double lat	= coordinate.getDouble("latitude");
+	            	Double lon = coordinate.getDouble("longitude");
+		            //Introducimos punto de origen
+	                Lugar gp = new Lugar(nombre, desc, lat, lon, servicio);
+	                listagp.add(gp);
+	            }
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return listagp;
+		    
+		} catch (UnsupportedEncodingException e) { 
+		        // TODO Auto-generated catch block 
+		        e.printStackTrace(); 
+		} catch (MalformedURLException e) { 
+		        // TODO Auto-generated catch block 
+		        e.printStackTrace(); 
+		} catch (IOException e) { 
+		        // TODO Auto-generated catch block 
+		        e.printStackTrace(); 
+		} catch (OAuthMessageSignerException e) { 
+		        // TODO Auto-generated catch block 
+		        e.printStackTrace(); 
+		} catch (OAuthExpectationFailedException e) { 
+		        // TODO Auto-generated catch block 
+		        e.printStackTrace(); 
+		} catch (OAuthCommunicationException e) { 
+		        // TODO Auto-generated catch block 
+		        e.printStackTrace(); 
+		}
+		return listagp;
+	}
+	
+	@Override
+	public void onCameraChange(CameraPosition position) {
+		// TODO Auto-generated method stub		
+	}
 }

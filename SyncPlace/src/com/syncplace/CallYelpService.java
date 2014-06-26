@@ -6,18 +6,18 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
-import com.syncplace.activity.NuevaRuta;
-import com.syncplace.activity.Servicios;
-
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.syncplace.activity.NuevaRuta;
+import com.syncplace.activity.ServiciosActivity;
+
 public class CallYelpService extends AsyncTask<String, Context, String>{
 
 	private ProgressDialog dialog;
-	protected Servicios ServiciosContext = null;
+	protected ServiciosActivity ServiciosContext = null;
 	protected NuevaRuta NuevaRutaContext = null;
 	private String url;
 	private Yelp yelp;
@@ -25,7 +25,7 @@ public class CallYelpService extends AsyncTask<String, Context, String>{
 	private double longitud;
 	private String busqueda;
 	
-	public CallYelpService(String url, Servicios contexto){
+	public CallYelpService(String url, ServiciosActivity contexto){
 		this.url = url;
 		this.ServiciosContext = contexto;
 	}
@@ -76,9 +76,9 @@ public class CallYelpService extends AsyncTask<String, Context, String>{
 	
 	protected void onPostExecute(String result) {
 		dialog.cancel();
-		if (NuevaRutaContext == null)
+		/*if (NuevaRutaContext == null)
 			ServiciosContext.LanzaMapaLugares(result);		
 		else
-			NuevaRutaContext.LanzaMapaRuta(result);
+			NuevaRutaContext.LanzaMapaRuta(result);*/
 	}
 }

@@ -47,6 +47,7 @@
             android:id="@+id/buttoneliminar"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/shape"
             android:text="@string/eliminar" />
 
         <!-- Button
@@ -65,7 +66,8 @@
             android:id="@+id/buttonalmacenar"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Almacenar" />
+            android:background="@drawable/shape"
+            android:text="Guardar en Favoritos" />
 
     </LinearLayout>
 

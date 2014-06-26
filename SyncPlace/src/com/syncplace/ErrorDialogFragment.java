@@ -34,11 +34,11 @@ public class ErrorDialogFragment extends DialogFragment {
         return mDialog;
     }
     
-    public AlertDialog createDialogLugar(Context contexto, final View v){
+    public AlertDialog createDialogLugar(Context contexto, final View v, String mensaje){
     	this.contexto = contexto;
     	AlertDialog.Builder builder = new AlertDialog.Builder(contexto);
 		 
-        builder.setMessage("¿Desea almacenar este lugar").setTitle("Información")
+        builder.setMessage(mensaje).setTitle("Información")
         	   .setPositiveButton("Guardar", new DialogInterface.OnClickListener() {
         		   public void onClick(DialogInterface dialog, int id) {        			   
         			   EditText etLat = (EditText)v.findViewById(R.id.editTextLat);

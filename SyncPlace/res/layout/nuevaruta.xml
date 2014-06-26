@@ -50,6 +50,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="fill_parent"
                     android:layout_weight="1"
+                    android:background="@drawable/shape"
                     android:text="Calcular Ruta" />
 
                 <Button
@@ -57,6 +58,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="fill_parent"
                     android:layout_weight="1"
+                    android:background="@drawable/shape"
                     android:text="Ver Ruta" />
 
             </LinearLayout>

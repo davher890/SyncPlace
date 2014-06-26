@@ -64,7 +64,7 @@ public class iItemizedOverlay extends ItemizedOverlay<OverlayItem> {
 		etTipo.setText(l.getTipo());
 		
         ErrorDialogFragment alert = new ErrorDialogFragment();
-        alert.createDialogLugar(context, v).show();        
+        alert.createDialogLugar(context, v, "¿Desea almacenar este lugar?").show();        
         return false;
 	}
 }
