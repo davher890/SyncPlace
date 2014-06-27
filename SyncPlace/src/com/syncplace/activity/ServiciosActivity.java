@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.location.LocationListener;
@@ -22,8 +23,8 @@ public class ServiciosActivity extends Activity {
 	Spinner servicio;
 	Button bservicio;
 	Button borigen;
-	EditText textlat;
-	EditText textlng;
+	TextView textlat;
+	TextView textlng;
 	
 	LocationManager locManager;
 	LocationListener locListener;
@@ -42,8 +43,8 @@ public class ServiciosActivity extends Activity {
         bservicio = (Button) findViewById(R.id.buttonbuscaservicio);
         borigen	  = (Button) findViewById(R.id.buttonorigen);
         servicio  = (Spinner) findViewById(R.id.spinnerservicios);
-        textlat = (EditText) findViewById(R.id.editTextLatitud);
-        textlng = (EditText) findViewById(R.id.editTextLongitud);
+        textlat = (TextView) findViewById(R.id.editTextLatitud);
+        textlng = (TextView) findViewById(R.id.editTextLongitud);
         
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,R.array.servicios,android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -61,26 +62,18 @@ public class ServiciosActivity extends Activity {
         
         bservicio.setOnClickListener(new OnClickListener() {			
 			@Override
-			public void onClick(View v) {
-				// TODO Auto-generated method stub
-			
-				/*if ("".equals(textlat.getText().toString()) || "".equals(textlng.getText().toString())){
-					Toast.makeText(contexto,"Debe seleccionar una posición de origen.",Toast.LENGTH_SHORT).show();
-				}
-				else{*/	
-					
-					String textoSpinner = servicio.getSelectedItem().toString();
-					String textoServicio = textoSpinner.substring(textoSpinner.indexOf('(')+1, textoSpinner.indexOf(')'));
-					
-					Intent i=new Intent(ServiciosActivity.this,MapaLugaresActivity.class);
-			        Bundle contenedor=new Bundle();
-			        i.putExtras(contenedor);
-			        i.putExtra("clase", "servicios");
-			        i.putExtra("servicio", textoServicio);
-			        i.putExtra("latitud", textlat.getText().toString());
-			        i.putExtra("longitud", textlng.getText().toString());		
-			        startActivity(i);
-				//}
+			public void onClick(View v) {					
+				String textoSpinner = servicio.getSelectedItem().toString();
+				String textoServicio = textoSpinner.substring(textoSpinner.indexOf('(')+1, textoSpinner.indexOf(')'));
+				
+				Intent i=new Intent(ServiciosActivity.this,MapaLugaresActivity.class);
+		        Bundle contenedor=new Bundle();
+		        i.putExtras(contenedor);
+		        i.putExtra("clase", "servicios");
+		        i.putExtra("servicio", textoServicio);
+		        i.putExtra("latitud", textlat.getText().toString());
+		        i.putExtra("longitud", textlng.getText().toString());		
+		        startActivity(i);
 			}
 		});    
 	}

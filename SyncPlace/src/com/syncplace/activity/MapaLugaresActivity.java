@@ -27,6 +27,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
@@ -117,6 +118,8 @@ public class MapaLugaresActivity extends FragmentActivity implements
     
     //Parametros para oblener la lista de servicios 
     String servicio = null;
+    double latitud = 9999;
+    double longitud = 9999;
 	    
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -155,13 +158,9 @@ public class MapaLugaresActivity extends FragmentActivity implements
         		//Marcamos lugares en el mapa
         		orig = false;
         		servicio = contenedor.getString("servicio");
-        		/*String clase = contenedor.getString("clase");
-        		latitud = contenedor.getString("latitud");
-        		longitud = contenedor.getString("longitud");
-        		servicio = contenedor.getString("servicio");
-        		
-    	        ListaPuntos listaGP = callYelp(latitud, longitud, servicio);
-	        	for (int i=0;i<listaGP.size();i++){
+        		latitud = contenedor.getDouble("latitud");
+        		longitud = contenedor.getDouble("longitud");
+        		/*for (int i=0;i<listaGP.size();i++){
 	        		LatLng pos = new LatLng(listaGP.get(i).getLatitud(),listaGP.get(i).getLongitud());
 	        		
 	        		else //Creo la ruta
@@ -180,8 +179,14 @@ public class MapaLugaresActivity extends FragmentActivity implements
                     currentZoom = pos.zoom;
                     Log.i("ZOOM", String.valueOf(currentZoom));
                     float radio = calculateZoomLevel_to_Radius();                    
-                    Location location = mLocationClient.getLastLocation();                                		
-        	        listaGP = callYelp(location.getLatitude(), location.getLongitude(), servicio, radio);
+                    
+                    if (latitud == 9999 && longitud == 9999){
+            	        listaGP = callYelp(latitud, longitud, servicio, radio);
+                    }
+                    else{
+                    	Location location = mLocationClient.getLastLocation();
+	        	        listaGP = callYelp(location.getLatitude(), location.getLongitude(), servicio, radio);
+	                }
     	        	for (int i=0;i<listaGP.size();i++){
     	        		LatLng posi = new LatLng(listaGP.get(i).getLatitud(),listaGP.get(i).getLongitud());
     	        		setMarker(posi, listaGP.get(i).getNombre(), listaGP.get(i).getDescripcion(),BitmapDescriptorFactory.fromResource(R.drawable.tick));
@@ -224,11 +229,13 @@ public class MapaLugaresActivity extends FragmentActivity implements
 				etInfo.setText(l.getDescripcion());
 				EditText etNombre = (EditText)v.findViewById(R.id.editTextNombre);
 				etNombre.setText(l.getNombre());
-				EditText etTipo = (EditText)v.findViewById(R.id.editTextTipo);
+				EditText etTipo = (EditText)v.findViewById(R.id. editTextTipo);
 				etTipo.setText(l.getTipo());
 				
 		        ErrorDialogFragment alert = new ErrorDialogFragment();
-		        alert.createDialogLugar(contexto, v, "").show();
+		        AlertDialog createDialogLugar = alert.createDialogLugar(contexto, v, "");
+		        createDialogLugar.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+		        createDialogLugar.show();
 				
 		        return true;
 			}
