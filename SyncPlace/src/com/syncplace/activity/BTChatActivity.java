@@ -9,6 +9,9 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
+import com.syncplace.v2.R;
+import com.syncplace.SensorDB;
+
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -20,7 +23,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -33,9 +35,6 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.syncplace.R;
-import com.syncplace.SensorDB;
 
 public class BTChatActivity extends Activity{
 		

@@ -1,5 +1,7 @@
 package com.syncplace;
 
+import com.syncplace.v2.R;
+
 import android.app.Activity;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;

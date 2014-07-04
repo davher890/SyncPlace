@@ -1,19 +1,12 @@
 package com.syncplace;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Point;
-import android.os.Bundle;
-import android.view.MotionEvent;
 
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.Overlay;
-import com.google.android.maps.Projection;
 
 public class verlayMapa extends Overlay {
 	
@@ -22,7 +15,7 @@ public class verlayMapa extends Overlay {
     
     private GeoPoint geopoint=null;
     
-    private ListaPuntos listaGP=null;
+    private ArrayList<Lugar> listaGP=null;
     private Boolean b;
   
     boolean intlugar;

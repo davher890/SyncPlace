@@ -10,13 +10,11 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.location.LocationListener;
-import com.syncplace.R;
+import com.syncplace.v2.R;
 
 public class ServiciosActivity extends Activity {
 	

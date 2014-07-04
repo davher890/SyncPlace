@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.syncplace"
-    android:versionCode="6"
+    package="com.syncplace.v2"
+    android:versionCode="1"
     android:versionName="1.0">
 
     <uses-sdk android:minSdkVersion="14"/>
@@ -38,7 +38,7 @@
     		android:name="com.syncplace.activity.MapaLugaresActivity">           
         </activity>
         <activity 
-    		android:name="com.syncplace.activity.ListaLugaresActivity">            
+    		android:name="com.syncplace.activity.FavoritosActivity">            
         </activity>        
         <activity 
             android:name="com.syncplace.activity.MostrarLugaresActivity">
@@ -57,6 +57,9 @@
         </activity>        
         <activity 
             android:name="com.syncplace.activity.ServiciosActivity">            
+        </activity>       
+        <activity 
+            android:name="com.syncplace.activity.LoginActivity">            
         </activity>
         
         <meta-data

@@ -1,5 +1,7 @@
 package com.syncplace;
 
+import com.syncplace.v2.R;
+
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -8,7 +10,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.EditText;
 
 //Define a DialogFragment that displays the error dialog
@@ -47,13 +48,13 @@ public class ErrorDialogFragment extends DialogFragment {
 	       			   EditText etInfo = (EditText)v.findViewById(R.id.editTextInfo);
 	       			   EditText etNombre = (EditText)v.findViewById(R.id.editTextNombre);
 	       			   EditText etTipo = (EditText)v.findViewById(R.id.editTextTipo);
+	       			   EditText textId = (EditText)v.findViewById(R.id.textIdGone);
 	       			   
-	       			   almacenar(new Lugar(etNombre.getText().toString(), etInfo.getText().toString(), 
+	       			   almacenar(new Lugar(Integer.parseInt(textId.getText().toString()), etNombre.getText().toString(), etInfo.getText().toString(), 
 	       					   Double.valueOf(etLat.getText().toString()), Double.valueOf(etLon.getText().toString()), 
 	       					   etTipo.getText().toString()));
         			   dialog.cancel();
                    }
-
                })
                .setNegativeButton("Cancelar", new DialogInterface.OnClickListener() {
         		   public void onClick(DialogInterface dialog, int id) {
@@ -67,7 +68,7 @@ public class ErrorDialogFragment extends DialogFragment {
     private void almacenar(Lugar l) {
 		SensorDB usdbh = new SensorDB(contexto, "DBSensor", null, 1);
 		SQLiteDatabase db = usdbh.getWritableDatabase();
-		usdbh.intLugar(db, l.getNombre(), l.getDescripcion(), l.getLatitud(), l.getLongitud(), l.getTipo());
+		usdbh.intLugar(db, l);
 		db.close();
 	}
 }

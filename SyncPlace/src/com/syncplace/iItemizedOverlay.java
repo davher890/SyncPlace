@@ -11,6 +11,7 @@ import android.widget.EditText;
 import com.google.android.maps.GeoPoint;
 import com.google.android.maps.ItemizedOverlay;
 import com.google.android.maps.OverlayItem;
+import com.syncplace.v2.R;
 
 /*
  * Clase empleada para dibujar los puntos de los sensores a partir de
@@ -46,7 +47,7 @@ public class iItemizedOverlay extends ItemizedOverlay<OverlayItem> {
 	@Override
 	protected boolean onTap(int index) {
 		
-		ListaPuntos listaGP = new ListaPuntos();
+		ArrayList<Lugar> listaGP = new ArrayList<Lugar>();
 		listaGP.add(l);
 		
 		LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);

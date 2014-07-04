@@ -9,19 +9,22 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.EditText;
 
 import com.google.android.maps.MapController;
-import com.syncplace.R;
 import com.syncplace.SensorDB;
-import com.syncplace.R.id;
-import com.syncplace.R.layout;
+import com.syncplace.v2.R;
 
 public class PrincipalActivity extends Activity {
 	
+	/*servidor = mysql.nixiweb.com
+	usuario = u440709988_david
+	base de datos = u440709988_david
+	contraseña = hypsyfzj0468*/
+
+	String IP_Server="192.168.3.20";//IP DE NUESTRO PC
+    String URL_connect="http://"+IP_Server+"/droidlogin/acces.php";//ruta en donde estan nuestros archivos
+	
 	MapController mc;
-	//MapView mapa;
-	EditText direccion;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -36,10 +39,20 @@ public class PrincipalActivity extends Activity {
         //Button bt = (Button) findViewById(R.id.buttonBluetooth);
         Button bruta = (Button) findViewById(R.id.buttonRuta);
         Button bserv = (Button) findViewById(R.id.buttonservicios);
+        Button breg = (Button) findViewById(R.id.buttonRegistro);
         
         /***************Inicializamos la base de datos ***************/
         //introduceBBDD();	
         /*************************************************************/
+        breg.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				Intent i = new Intent(PrincipalActivity.this, LoginActivity.class);
+				startActivity(i);
+			}
+		});
         
         bmapa.setOnClickListener(new OnClickListener() {
 			
@@ -54,7 +67,7 @@ public class PrincipalActivity extends Activity {
 			
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				Intent i = new Intent(PrincipalActivity.this, ListaLugaresActivity.class);
+				Intent i = new Intent(PrincipalActivity.this, FavoritosActivity.class);
 				startActivity(i);
 			}
 		});
@@ -123,11 +136,11 @@ public class PrincipalActivity extends Activity {
 					        
 		    	/*****Insertamos los datos en la tabla Sensor*****/
 				
-				usdbh.intLugar(db, "BarEsquina", "--",  42.7147, -6.8994, "Bar");
+				/*usdbh.intLugar(db, "BarEsquina", "--",  42.7147, -6.8994, "Bar");
 				usdbh.intLugar(db, "100monta", "--",  42.4883, -0.2197, "Bar");
 				usdbh.intLugar(db, "sureÃ±a", "--",  38.4449, -1.4501, "Bar");
 				usdbh.intLugar(db, "Prueba1", "--",  38.5137, -5.8886, "Bar");
-				usdbh.intLugar(db, "Restaurante", "--", 41.1864, -3.5706, "Bar");
+				usdbh.intLugar(db, "Restaurante", "--", 41.1864, -3.5706, "Bar");*/
 
 		        /***************************************************/
 		    }

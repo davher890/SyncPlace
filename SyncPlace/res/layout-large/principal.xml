@@ -9,10 +9,10 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
-        android:layout_margin="75dp"
-        android:columnCount="2"
+        android:layout_margin="45dp"
+        android:columnCount="3"
         android:orientation="horizontal"
-        android:rowCount="2" >
+        android:rowCount="3" >
 
         <Button
             android:id="@+id/buttonmapa"
@@ -29,7 +29,7 @@
 
         <Button
             android:id="@+id/buttonservicios"
-            android:layout_column="1"
+            android:layout_column="2"
             android:layout_gravity="right"
             android:layout_marginTop="150dp"
             android:layout_row="0"
@@ -57,7 +57,7 @@
         <Button
             android:id="@+id/buttonLista"
             style="@drawable/shape"
-            android:layout_column="1"
+            android:layout_column="2"
             android:layout_gravity="bottom|right"
             android:layout_marginBottom="100dp"
             android:layout_row="1"
@@ -67,6 +67,13 @@
             android:textColor="#3366CC"
             android:textSize="22sp"
             android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/buttonRegistro"
+            android:layout_column="1"
+            android:layout_gravity="top"
+            android:layout_row="0"
+            android:text="Button" />
         
     </GridLayout>
 

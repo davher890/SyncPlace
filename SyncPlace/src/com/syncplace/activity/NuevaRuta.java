@@ -1,7 +1,11 @@
 package com.syncplace.activity;
 
+import java.util.ArrayList;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import android.app.Activity;
-import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -12,18 +16,10 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import com.syncplace.CallYelpService;
-import com.syncplace.ListaPuntos;
 import com.syncplace.Lugar;
-import com.syncplace.R;
 import com.syncplace.SensorDB;
-import com.syncplace.R.id;
-import com.syncplace.R.layout;
-
-import java.util.ArrayList;
+import com.syncplace.v2.R;
 
 public class NuevaRuta extends Activity {
 	
@@ -34,7 +30,7 @@ public class NuevaRuta extends Activity {
 	Button verruta;
 	NuevaRuta contexto;
 	
-	ListaPuntos listaGP = new ListaPuntos();	
+	ArrayList<Lugar> listaGP = new ArrayList<Lugar>();	
 	
 	ArrayList<String> lug = new ArrayList<String>();
 	
@@ -65,8 +61,8 @@ public class NuevaRuta extends Activity {
 				SensorDB usdbh = new SensorDB(contexto, "DBSensor", null, 1);
 				SQLiteDatabase db = usdbh.getWritableDatabase();
 				
-				lorigen = usdbh.buscaLugar(db, lug.get(origen.getSelectedItemPosition()));
-				ldestino = usdbh.buscaLugar(db, lug.get(destino.getSelectedItemPosition()));
+				//lorigen = usdbh.buscaLugar(db, lug.get(origen.getSelectedItemPosition()));
+				//ldestino = usdbh.buscaLugar(db, lug.get(destino.getSelectedItemPosition()));
 				
 				if (lorigen == null || ldestino == null){
 					finish();
@@ -89,12 +85,12 @@ public class NuevaRuta extends Activity {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-                Intent i=new Intent(NuevaRuta.this,MapaLugaresActivity.class);
+                /*Intent i=new Intent(NuevaRuta.this,MapaLugaresActivity.class);
                 Bundle contenedor=new Bundle();
                 contenedor.putParcelable("gplist",listaGP);
                 i.putExtras(contenedor);
                 i.putExtra("clase","nuevaruta");
-                startActivity(i);				
+                startActivity(i);*/				
 			}
 		});
     }
@@ -133,7 +129,7 @@ public class NuevaRuta extends Activity {
 	            lng1 = steps.getJSONObject(i).getJSONObject("end_location").getDouble("lng");
 	            
 	            //Introducimos punto de origen
-	            Lugar gp = new Lugar("", "", lat1, lng1, "");
+	            Lugar gp = new Lugar(0, "", "", lat1, lng1, "");
 	            listaGP.add(gp);
 	            
 	        	i++;
@@ -165,7 +161,7 @@ public class NuevaRuta extends Activity {
 			    Double lon = Double.valueOf(fila.getString(4)).doubleValue();
 			    String tipo = fila.getString(5);
 			    				    		
-			    Lugar s = new Lugar(nombre, descripcion, lat, lon, tipo);
+			    Lugar s = new Lugar(0, nombre, descripcion, lat, lon, tipo);
 			    lug.add(s.getNombre());
 			    
 			} while(fila.moveToNext());

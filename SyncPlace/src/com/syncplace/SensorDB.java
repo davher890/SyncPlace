@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteDatabase.CursorFactory;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 public class SensorDB extends SQLiteOpenHelper{
 	
@@ -44,76 +45,53 @@ public class SensorDB extends SQLiteOpenHelper{
 	public Lugar buscaLugar(SQLiteDatabase db, int id){
 
 		Lugar s = null;
-		String arg[]={""+id};
-		String sql = "";
-	    sql = "SELECT nombre, descripcion, lattitude, longitude, tipo " +
-	    	  "FROM Lugar WHERE _id = ?";
+		String arg[]={String.valueOf(id)};
+		String sql = "SELECT * FROM Lugar WHERE _id = ?";
 	    Cursor fila = db.rawQuery(sql, arg);
 	    
 	    //Nos aseguramos de que existe al menos un registro
 	    if (fila.moveToFirst()) {
-	    	s = new Lugar(fila.getString(0), 
+	    	s = new Lugar(id,
 	    				  fila.getString(1), 
-	    				  Double.valueOf(fila.getString(2)).doubleValue(), 
+	    				  fila.getString(2), 
 	    				  Double.valueOf(fila.getString(3)).doubleValue(), 
-	    				  fila.getString(4));
+	    				  Double.valueOf(fila.getString(4)).doubleValue(), 
+	    				  fila.getString(5));
 	    }
 	    
 	    return s;	
 	}
 	
-	public Lugar buscaLugar(SQLiteDatabase db, String nombre){
-
-		Lugar s = null;
-		String arg[]={nombre};
-		String sql = "";
-	    sql = "SELECT descripcion, lattitude, longitude, tipo " +
-	    	  "FROM Lugar WHERE nombre = ?";
-	    Cursor fila = db.rawQuery(sql, arg);
-	    
-	    //Nos aseguramos de que existe al menos un registro
-	    if (fila.moveToFirst()) {
-	    	do{
-	    		s = new Lugar(nombre, 
-	    					  fila.getString(0), 
-	    					  Double.valueOf(fila.getString(1)).doubleValue(), 
-	    					  Double.valueOf(fila.getString(2)).doubleValue(), 
-	    					  fila.getString(3));       		
-	    	}while(fila.moveToNext());	
-	    }
-	    
-	    return s;	
-	}
-	
-	public void intLugar (SQLiteDatabase db, String nombre, String descripcion, double lat, double lon, String tipo){
+	public void intLugar (SQLiteDatabase db, Lugar l){
 				
-		String sql = "SELECT nombre, descripcion, lattitude, longitude, tipo FROM Lugar";
-		Cursor fila = db.rawQuery(sql, null);
+		String sql = "SELECT * FROM Lugar WHERE _id = ?";
+		String arg[]={String.valueOf(l.getId())};
+		Cursor fila = db.rawQuery(sql, arg);
 		boolean flag = false;
 		
-		if (fila.moveToFirst()) {
-	    	do{
-	    		if (fila.getString(0).equals(nombre) &&
-	    			fila.getString(1).equals(descripcion) &&
-	    			Double.valueOf(fila.getString(2)).doubleValue() == lat &&
-	    			Double.valueOf(fila.getString(3)).doubleValue() == lon &&
-	    			fila.getString(4).equals(tipo))
-	    			
-	    			flag = true;
-	    		
-	    	}while(fila.moveToNext());
-	    }
-		
-		if (flag == false){		
+		//Si no existe el registro
+		if (!fila.moveToFirst()) {	
 			ContentValues registro=new ContentValues();
-		    registro.put("nombre", nombre);
-		    registro.put("descripcion",descripcion);
-		    registro.put("lattitude",lat);
-		    registro.put("longitude",lon);
-		    registro.put("tipo", tipo);
+		    registro.put("nombre", l.getNombre());
+		    registro.put("descripcion", l.getDescripcion());
+		    registro.put("lattitude", l.getLatitud());
+		    registro.put("longitude", l.getLongitud());
+		    registro.put("tipo", l.getTipo());
 		    if (db.insert("Lugar", null, registro) == -1){
-		    	System.out.println("Error al insertar nuevo");
+		    	Log.e("BBDD","Error al insertar nuevo");
 		    }	
+		}
+		else{
+			//Update Registro
+			ContentValues registro = new ContentValues();
+			registro.put("nombre", l.getNombre());
+		    registro.put("descripcion", l.getDescripcion());
+		    registro.put("lattitude", l.getLatitud());
+		    registro.put("longitude", l.getLongitud());
+		    registro.put("tipo", l.getTipo());
+			 
+			//Actualizamos el registro en la base de datos
+			db.update("Lugar", registro, "_id="+l.getId(), null);			
 		}
 	}
 

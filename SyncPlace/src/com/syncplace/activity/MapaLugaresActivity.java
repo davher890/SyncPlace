@@ -5,6 +5,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -30,6 +31,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.database.Cursor;
@@ -72,10 +75,9 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.VisibleRegion;
 import com.google.android.maps.MapController;
 import com.syncplace.ErrorDialogFragment;
-import com.syncplace.ListaPuntos;
 import com.syncplace.Lugar;
-import com.syncplace.R;
 import com.syncplace.SensorDB;
+import com.syncplace.v2.R;
 
 public class MapaLugaresActivity extends FragmentActivity implements
 	GooglePlayServicesClient.ConnectionCallbacks, 
@@ -110,8 +112,8 @@ public class MapaLugaresActivity extends FragmentActivity implements
     MapController mc;
     Geocoder geoCoder;
     
-    ListaPuntos listaGPaux; 
-    ListaPuntos listaGP;
+    ArrayList<Lugar> listaGPaux; 
+    ArrayList<Lugar> listaGP;
 	
 	final DecimalFormat decf = new DecimalFormat("###.####");
     private boolean isEditMode = false;
@@ -189,7 +191,7 @@ public class MapaLugaresActivity extends FragmentActivity implements
 	                }
     	        	for (int i=0;i<listaGP.size();i++){
     	        		LatLng posi = new LatLng(listaGP.get(i).getLatitud(),listaGP.get(i).getLongitud());
-    	        		setMarker(posi, listaGP.get(i).getNombre(), listaGP.get(i).getDescripcion(),BitmapDescriptorFactory.fromResource(R.drawable.tick));
+    	        		setMarker(posi, listaGP.get(i).getId(), BitmapDescriptorFactory.fromResource(R.drawable.tick));
     	        	}
                     
                 }
@@ -207,13 +209,13 @@ public class MapaLugaresActivity extends FragmentActivity implements
 					SensorDB usdbh = new SensorDB(contexto, "DBSensor", null, 1);
 					SQLiteDatabase db = usdbh.getWritableDatabase();
 					
-					l = usdbh.buscaLugar(db, marker.getTitle());
+					l = usdbh.buscaLugar(db, Integer.parseInt(marker.getTitle()));
 					if (l == null)
 						return false;					
 				}	
 				else{				
 					for (int i=0; i< listaGP.size();i++){
-						if (listaGP.get(i).getNombre().equals(marker.getTitle())){
+						if (String.valueOf(listaGP.get(i).getId()).equals(marker.getTitle())){
 							l = listaGP.get(i);
 						}
 					}
@@ -231,10 +233,12 @@ public class MapaLugaresActivity extends FragmentActivity implements
 				etNombre.setText(l.getNombre());
 				EditText etTipo = (EditText)v.findViewById(R.id. editTextTipo);
 				etTipo.setText(l.getTipo());
+				EditText editId = (EditText)v.findViewById(R.id.textIdGone);
+				editId.setText(String.valueOf(l.getId()));
 				
 		        ErrorDialogFragment alert = new ErrorDialogFragment();
 		        AlertDialog createDialogLugar = alert.createDialogLugar(contexto, v, "");
-		        createDialogLugar.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+		        createDialogLugar.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		        createDialogLugar.show();
 				
 		        return true;
@@ -266,25 +270,18 @@ public class MapaLugaresActivity extends FragmentActivity implements
 					etLon.setText(String.valueOf(point.longitude));
 					
 			        ErrorDialogFragment alert = new ErrorDialogFragment();
-			        alert.createDialogLugar(contexto, v,"¿Desea almacenar este lugar?").show();
+			        AlertDialog createDialogLugar = alert.createDialogLugar(contexto, v,"¿Desea almacenar este lugar?");
+			        createDialogLugar.setOnDismissListener(new OnDismissListener() {
+						
+						@Override
+						public void onDismiss(DialogInterface dialog) {
+							dibuja_lugares();							
+						}
+					});
+					createDialogLugar.show();
 	    		}
             }
         });
-
-        /*map.setOnMapLongClickListener(new OnMapLongClickListener() {
-            public void onMapLongClick(LatLng point) {
-                Projection proj = map.getProjection();
-                Point coord = proj.toScreenLocation(point);
-         
-                Toast.makeText(
-                    MapaLugaresActivity.this,
-                    "Click Largo\n" +
-                    "Lat: " + point.latitude + "\n" +
-                    "Lng: " + point.longitude + "\n" +
-                    "X: " + coord.x + " - Y: " + coord.y,
-                    Toast.LENGTH_SHORT).show();
-            }
-        });*/
 
         /***************************************************************/
         searchButton.setOnClickListener(new View.OnClickListener() {
@@ -333,8 +330,8 @@ public class MapaLugaresActivity extends FragmentActivity implements
 	    if (fila.moveToFirst()) {
 	    	//Recorremos el cursor hasta que no haya mas registros
 	    	do {
-	    		//System.out.println(usdbh.IsActivatedSensor(db, Integer.parseInt(fila.getString(0))));
-	    		Lugar l = new Lugar(fila.getString(1), 
+	    		Lugar l = new Lugar(Integer.parseInt(fila.getString(0)), 
+	    							fila.getString(1), 
 	    							fila.getString(2), 
 	    							Double.valueOf(fila.getString(3)).doubleValue(), 
 	    							Double.valueOf(fila.getString(4)).doubleValue(), 
@@ -342,7 +339,7 @@ public class MapaLugaresActivity extends FragmentActivity implements
 	    	
 	    		LatLng pos = new LatLng(l.getLatitud(),l.getLongitud());
 
-	    		setMarker(pos, l.getNombre(), l.getDescripcion(), null);
+	    		setMarker(pos, l.getId(), null);
 	    			    		
 	    	} while(fila.moveToNext());	
 	    }
@@ -411,13 +408,11 @@ public class MapaLugaresActivity extends FragmentActivity implements
 		map.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);		
 	}
 	
-	private void setMarker(LatLng position, String titulo, String info, BitmapDescriptor icon) {
+	private void setMarker(LatLng position, int id, BitmapDescriptor icon) {
 		// Agregamos marcadores para indicar sitios de interéses.
 		if (icon == null)
 			icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
-		map.addMarker(new MarkerOptions().position(position).title(titulo)  //Agrega un titulo al marcador
-				.snippet(info)   //Agrega información detalle relacionada con el marcador 
-				.icon(icon)); //Color del marcador		  
+		map.addMarker(new MarkerOptions().title(String.valueOf(id)).position(position).icon(icon));
 	}
 	
 	private boolean isGooglePlayServicesAvailable() {
@@ -537,9 +532,9 @@ public class MapaLugaresActivity extends FragmentActivity implements
 		return center.distanceTo(middleLeftCornerLocation);//calculate distane between middleLeftcorner and center 
 	}
 	
-	private ListaPuntos callYelp(double latitud, double longitud, String servicio, float radius) {
+	private ArrayList<Lugar> callYelp(double latitud, double longitud, String servicio, float radius) {
 		
-		ListaPuntos listagp = null;
+		ArrayList<Lugar> listagp = null;
 		
 		String limit = "20"; 
 		try { 
@@ -570,7 +565,7 @@ public class MapaLugaresActivity extends FragmentActivity implements
 				respJSON = new JSONObject(result);
 			              
 	            JSONArray businesses = respJSON.getJSONArray("businesses");
-	            listagp = new ListaPuntos();
+	            listagp = new ArrayList<Lugar>();
 	            
 	            for (int i=0;i<businesses.length();i++){            	
 	            	JSONObject jsonObject = businesses.getJSONObject(i);
@@ -592,7 +587,7 @@ public class MapaLugaresActivity extends FragmentActivity implements
 	            	Double lat	= coordinate.getDouble("latitude");
 	            	Double lon = coordinate.getDouble("longitude");
 		            //Introducimos punto de origen
-	                Lugar gp = new Lugar(nombre, desc, lat, lon, servicio);
+	                Lugar gp = new Lugar(0, nombre, desc, lat, lon, servicio);
 	                listagp.add(gp);
 	            }
 			} catch (JSONException e) {
