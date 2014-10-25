@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
+import com.google.android.gms.ads.AdView;
 import com.google.android.maps.MapController;
 import com.syncplace.SensorDB;
 import com.syncplace.v2.R;
@@ -25,6 +26,7 @@ public class PrincipalActivity extends Activity {
     String URL_connect="http://"+IP_Server+"/droidlogin/acces.php";//ruta en donde estan nuestros archivos
 	
 	MapController mc;
+	private AdView adView;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -32,6 +34,25 @@ public class PrincipalActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		
         setContentView(R.layout.principal);
+        
+        /*adView = new AdView(this);
+	    adView.setAdUnitId("ca-app-pub-8047492237634735/5661026866");
+	    adView.setAdSize(AdSize.BANNER);
+	    
+	    LinearLayout layout = (LinearLayout)findViewById(R.id.principalAd);
+	    layout.addView(adView);
+
+	    // Iniciar una solicitud genérica.
+	    //AdRequest adRequest = new AdRequest.Builder().build();
+	    AdRequest adRequest = new AdRequest.Builder()
+	    .addTestDevice(AdRequest.DEVICE_ID_EMULATOR)        // Todos los emuladores
+	    .addTestDevice("D221E39BD0B771BA8205EBFB62B4D3F3")  // Mi teléfono de prueba Samsung Galaxy s3
+	    .build();
+	    
+
+
+	    // Cargar adView con la solicitud de anuncio.
+	    adView.loadAd(adRequest);*/
 		
 		Button bmapa = (Button) findViewById(R.id.buttonmapa);
         Button blista = (Button) findViewById(R.id.buttonLista);
@@ -39,12 +60,12 @@ public class PrincipalActivity extends Activity {
         //Button bt = (Button) findViewById(R.id.buttonBluetooth);
         Button bruta = (Button) findViewById(R.id.buttonRuta);
         Button bserv = (Button) findViewById(R.id.buttonservicios);
-        Button breg = (Button) findViewById(R.id.buttonRegistro);
+        //Button breg = (Button) findViewById(R.id.buttonRegistro);
         
         /***************Inicializamos la base de datos ***************/
         //introduceBBDD();	
         /*************************************************************/
-        breg.setOnClickListener(new OnClickListener() {
+        /*breg.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
@@ -52,7 +73,7 @@ public class PrincipalActivity extends Activity {
 				Intent i = new Intent(PrincipalActivity.this, LoginActivity.class);
 				startActivity(i);
 			}
-		});
+		});*/
         
         bmapa.setOnClickListener(new OnClickListener() {
 			

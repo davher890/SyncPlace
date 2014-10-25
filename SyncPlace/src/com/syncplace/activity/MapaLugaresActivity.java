@@ -34,15 +34,16 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.location.Address;
+import android.location.Criteria;
 import android.location.Geocoder;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -53,13 +54,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.location.LocationClient;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
@@ -79,9 +76,8 @@ import com.syncplace.Lugar;
 import com.syncplace.SensorDB;
 import com.syncplace.v2.R;
 
-public class MapaLugaresActivity extends FragmentActivity implements
-	GooglePlayServicesClient.ConnectionCallbacks, 
-	GooglePlayServicesClient.OnConnectionFailedListener, OnCameraChangeListener{
+
+public class MapaLugaresActivity extends FragmentActivity implements LocationListener, OnCameraChangeListener{
 		
 	public final String CONSUMER_KEY = "g8e8XleY3fOygTjFaCHsMA"; 
     public final String CONSUMER_SECRET = "HoqxWudi4mdqOR4-skgt9N_XuBs"; 
@@ -93,9 +89,9 @@ public class MapaLugaresActivity extends FragmentActivity implements
 	/****** Utilizado solo para mostrar mi posición ******/
 	private SupportMapFragment mapFragment;
 	private GoogleMap map;
-	private LocationClient mLocationClient;
+	private LocationManager mLocationManager;
+	Location myLocation = null;
 	
-	private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 	
 	private LatLng myPos = null;
 	/*****************************************************/
@@ -122,19 +118,17 @@ public class MapaLugaresActivity extends FragmentActivity implements
     String servicio = null;
     double latitud = 9999;
     double longitud = 9999;
+    
+    float currentZoom = -1;
 	    
 	@Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.map);
-        
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
         
-        mLocationClient = new LocationClient(this, this, this);
-        mapFragment = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map));
-        map = mapFragment.getMap();
-        map.setMyLocationEnabled(true);
-        
+        isGooglePlayServicesAvailable();
+              
         //FrameLayout superior Principal
         FrameLayout frame = (FrameLayout) findViewById(R.id.mainFrame);
         frame.setVisibility(View.VISIBLE);
@@ -162,6 +156,7 @@ public class MapaLugaresActivity extends FragmentActivity implements
         		servicio = contenedor.getString("servicio");
         		latitud = contenedor.getDouble("latitud");
         		longitud = contenedor.getDouble("longitud");
+        		//callYelp(latitud, longitud, origen, radius);
         		/*for (int i=0;i<listaGP.size();i++){
 	        		LatLng pos = new LatLng(listaGP.get(i).getLatitud(),listaGP.get(i).getLongitud());
 	        		
@@ -170,33 +165,6 @@ public class MapaLugaresActivity extends FragmentActivity implements
 	        	}*/
         	}
         }
-        
-        map.setOnCameraChangeListener(new OnCameraChangeListener() {
-
-            private float currentZoom = -1;
-
-            @Override
-            public void onCameraChange(CameraPosition pos) {
-                if (pos.zoom != currentZoom && servicio != null){
-                    currentZoom = pos.zoom;
-                    Log.i("ZOOM", String.valueOf(currentZoom));
-                    float radio = calculateZoomLevel_to_Radius();                    
-                    
-                    if (latitud == 9999 && longitud == 9999){
-            	        listaGP = callYelp(latitud, longitud, servicio, radio);
-                    }
-                    else{
-                    	Location location = mLocationClient.getLastLocation();
-	        	        listaGP = callYelp(location.getLatitude(), location.getLongitude(), servicio, radio);
-	                }
-    	        	for (int i=0;i<listaGP.size();i++){
-    	        		LatLng posi = new LatLng(listaGP.get(i).getLatitud(),listaGP.get(i).getLongitud());
-    	        		setMarker(posi, listaGP.get(i).getId(), BitmapDescriptorFactory.fromResource(R.drawable.tick));
-    	        	}
-                    
-                }
-            }
-        });
         
         map.setOnMarkerClickListener(new OnMarkerClickListener() {
 
@@ -305,9 +273,9 @@ public class MapaLugaresActivity extends FragmentActivity implements
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
-                }
-            }
-        });
+                }                
+            }            
+        });        
 	}
 	
 	public boolean isEditMode(){
@@ -350,20 +318,17 @@ public class MapaLugaresActivity extends FragmentActivity implements
 	    db.close();
 	    fila.close();
 	} 
-	@Override
+	
+	/*@Override
 	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 		
 	    // Decide what to do based on the original request code
 	    switch (requestCode) {
 
 	        case CONNECTION_FAILURE_RESOLUTION_REQUEST:
-	            /*
-	             * If the result code is Activity.RESULT_OK, try
-	             * to connect again
-	             */
 	            switch (resultCode) {
 	                case Activity.RESULT_OK:
-	                    mLocationClient.connect();
+	                    mLocationManager.connect();
 	                    break;
 	            }
             default:
@@ -371,7 +336,7 @@ public class MapaLugaresActivity extends FragmentActivity implements
             	dibuja_lugares();
             	break;
 	    }
-	}
+	}*/
 	
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -392,6 +357,7 @@ public class MapaLugaresActivity extends FragmentActivity implements
 
         return result;
     }
+    
     public void hideSearchPanel() {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(
@@ -415,27 +381,66 @@ public class MapaLugaresActivity extends FragmentActivity implements
 		map.addMarker(new MarkerOptions().title(String.valueOf(id)).position(position).icon(icon));
 	}
 	
-	private boolean isGooglePlayServicesAvailable() {
-	    // Check that Google Play services is available
-	    int resultCode =  GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
-	    // If Google Play services is available
-	    if (ConnectionResult.SUCCESS == resultCode) {
-	        // In debug mode, log the status
-	        Log.d("Location Updates", "Google Play services is available.");
-	        return true;
-	    } else {
-	        // Get the error dialog from Google Play services
-	        Dialog errorDialog = GooglePlayServicesUtil.getErrorDialog( resultCode,this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
-	        // If Google Play services can provide an error dialog
-	        if (errorDialog != null) {
-	            // Create a new DialogFragment for the error dialog
-	            ErrorDialogFragment errorFragment = new ErrorDialogFragment();
-	            errorFragment.setDialog(errorDialog);
-	            errorFragment.show(getSupportFragmentManager(), "Location Updates");
-	        }
+	private void isGooglePlayServicesAvailable() {
+		
+		// Getting Google Play availability status
+        int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getBaseContext());
+ 
+        // Showing status
+        if(status!=ConnectionResult.SUCCESS){ // Google Play Services are not available
+ 
+            int requestCode = 10;
+            Dialog dialog = GooglePlayServicesUtil.getErrorDialog(status, this, requestCode);
+            dialog.show();
+ 
+        }else { // Google Play Services are available
+ 
+            // Getting reference to the SupportMapFragment of activity_main.xml
+            SupportMapFragment fm = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+ 
+            // Getting GoogleMap object from the fragment
+            map = fm.getMap();
+ 
+            // Enabling MyLocation Layer of Google Map
+            map.setMyLocationEnabled(true);
+ 
+            // Getting LocationManager object from System Service LOCATION_SERVICE
+            mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+ 
+            // Creating a criteria object to retrieve provider
+            Criteria criteria = new Criteria();
+ 
+            // Getting the name of the best provider
+            String provider = mLocationManager.getBestProvider(criteria, true);
+            
+            // getting GPS status
+            boolean isGPSEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 
-	        return false;
-	    }
+            // getting network status
+            boolean isNetworkEnabled = mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+            if (!isGPSEnabled && !isNetworkEnabled) {
+                // no network provider is enabled
+            } else {
+            	if (isNetworkEnabled) {
+                    if (mLocationManager != null) {
+                    	myLocation = mLocationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+                    }
+                }
+                if (isGPSEnabled) {
+                    if (myLocation == null) {
+                        if (mLocationManager != null) {
+                        	myLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                        }
+                    }
+                }
+            }
+ 
+            if(myLocation!=null){
+                onLocationChanged(myLocation);
+            }
+            mLocationManager.requestLocationUpdates(provider, 20000, 0, this);
+        }
 	}
 
 	/*
@@ -443,77 +448,58 @@ public class MapaLugaresActivity extends FragmentActivity implements
 	 * client finishes successfully. At this point, you can
 	 * request the current location or start periodic updates
 	 */
-	@Override
+	/*@Override
 	public void onConnected(Bundle dataBundle) {
 	    // Display the connection status
 	    Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
-	    Location location = mLocationClient.getLastLocation();
+	    Location location = mLocationManager.getLastLocation();
 	    if (location != null){
 		    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 		    CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
 		    map.animateCamera(cameraUpdate);
 	    }
-	}
+	}*/
 
 	/*
 	 * Called by Location Services if the connection to the
 	 * location client drops because of an error.
 	 */
-	@Override
+	/*@Override
 	public void onDisconnected() {
 	    // Display the connection status
 	    Toast.makeText(this, "Disconnected. Please re-connect.", Toast.LENGTH_SHORT).show();
-	}
+	}*/
 
 	/*
 	 * Called by Location Services if the attempt to
 	 * Location Services fails.
 	 */
-	@Override
-	public void onConnectionFailed(ConnectionResult connectionResult) {
+	/*@Override
+	public void onConnectionFailed(ConnectionResult connectionResult) {*/
 	    /*
 	     * Google Play services can resolve some errors it detects.
 	     * If the error has a resolution, try sending an Intent to
 	     * start a Google Play services activity that can resolve
 	     * error.
 	     */
-	    if (connectionResult.hasResolution()) {
+	    /*if (connectionResult.hasResolution()) {
 	        try {
 	            // Start an Activity that tries to resolve the error
 	            connectionResult.startResolutionForResult(
 	                    this,
-	                    CONNECTION_FAILURE_RESOLUTION_REQUEST);
+	                    CONNECTION_FAILURE_RESOLUTION_REQUEST);*/
 	            /*
 	            * Thrown if Google Play services canceled the original
 	            * PendingIntent
 	            */
-	        } catch (IntentSender.SendIntentException e) {
+	       /* } catch (IntentSender.SendIntentException e) {
 	            // Log the error
 	            e.printStackTrace();
 	        }
 	    } else {
 	       Toast.makeText(getApplicationContext(), "Sorry. Location services not available to you", Toast.LENGTH_LONG).show();
 	    }
-	}
-	
-	@Override
-	protected void onStart() {
-	    super.onStart();
-	    // Connect the client.
-	    if(isGooglePlayServicesAvailable()){
-	        mLocationClient.connect();
-	    }
-	}
-	
-	/*
-	 * Called when the Activity is no longer visible.
-	 */
-	@Override
-	protected void onStop() {
-	    // Disconnecting the client invalidates it.
-	    mLocationClient.disconnect();
-	    super.onStop();
-	}
+	}*/
 	
 	private float calculateZoomLevel_to_Radius() {
 		VisibleRegion vr = map.getProjection().getVisibleRegion();
@@ -557,7 +543,7 @@ public class MapaLugaresActivity extends FragmentActivity implements
 		    HttpResponse response = (HttpResponse) httpClient.execute(request); 
 
 		    HttpEntity entity = ((org.apache.http.HttpResponse) response).getEntity(); 
-		    String result = EntityUtils.toString(entity); 		    
+		    String result = EntityUtils.toString(entity);		    
 		    
 		    /**************************************************************************/
 		    JSONObject respJSON = null;
@@ -619,7 +605,53 @@ public class MapaLugaresActivity extends FragmentActivity implements
 	}
 	
 	@Override
-	public void onCameraChange(CameraPosition position) {
+	public void onCameraChange(CameraPosition pos) {
+		
+        if (pos.zoom != currentZoom && servicio != null){
+            currentZoom = pos.zoom;
+            
+            float radio = calculateZoomLevel_to_Radius();                    
+            
+            if (latitud == 9999 && longitud == 9999){
+    	        listaGP = callYelp(latitud, longitud, servicio, radio);
+            }
+            else{
+    	        listaGP = callYelp(myLocation.getLatitude(), myLocation.getLongitude(), servicio, radio);
+            }
+        	for (int i=0;i<listaGP.size();i++){
+        		LatLng posi = new LatLng(listaGP.get(i).getLatitud(),listaGP.get(i).getLongitud());
+        		setMarker(posi, listaGP.get(i).getId(), BitmapDescriptorFactory.fromResource(R.drawable.tick));
+        	}            
+        }
+	}
+
+	@Override
+	public void onLocationChanged(Location location) {
+		
+		myLocation = location;
+		
+        // Getting latitude of the current location
+        double latitude = location.getLatitude(); 
+        // Getting longitude of the current location
+        double longitude = location.getLongitude();
+ 
+        // Creating a LatLng object for the current location
+        LatLng latLng = new LatLng(latitude, longitude);
+        centrarCamara(latLng);
+	}
+
+	@Override
+	public void onProviderDisabled(String provider) {
+		// TODO Auto-generated method stub		
+	}
+
+	@Override
+	public void onProviderEnabled(String provider) {
+		// TODO Auto-generated method stub		
+	}
+
+	@Override
+	public void onStatusChanged(String provider, int status, Bundle extras) {
 		// TODO Auto-generated method stub		
 	}
 }

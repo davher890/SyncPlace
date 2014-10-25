@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/principalAd"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/isync"
@@ -7,7 +8,7 @@
 
     <GridLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_margin="10dp"
         android:columnCount="2"
@@ -70,5 +71,4 @@
             android:textStyle="bold" />
         
     </GridLayout>
-
 </LinearLayout>
