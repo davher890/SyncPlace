@@ -9,9 +9,6 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.UUID;
 
-import com.syncplace.v2.R;
-import com.syncplace.SensorDB;
-
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -35,6 +32,9 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.syncplace.SensorDB;
+import com.syncplace.v2.R;
 
 public class BTChatActivity extends Activity{
 		
@@ -778,7 +778,7 @@ public class BTChatActivity extends Activity{
     };
     
     public void enviaBBDD(){
-    	SensorDB usdbh = new SensorDB(context, "DBSensor", null, 1);
+    	SensorDB usdbh = new SensorDB(context);
 		SQLiteDatabase db = usdbh.getWritableDatabase();
 		
 		String sql = "SELECT nombre, descripcion, lattitude, longitude, tipo FROM Lugar";

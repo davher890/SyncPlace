@@ -34,7 +34,7 @@
             android:layout_marginTop="150dp"
             android:layout_row="0"
             android:background="@drawable/iconoservicios"
-            android:text="Servicios"
+            android:text="@string/BotonServicios"
             android:textColor="#FFFFFF"
             android:textSize="22sp"
             android:textStyle="bold"
@@ -48,7 +48,7 @@
             android:layout_row="1"
             android:background="@drawable/iconoruta"
             android:lines="1"
-            android:text="Nueva ruta"
+            android:text="@string/BotonRuta"
             android:textColor="#FFFFFF"
             android:textSize="22sp"
             android:textStyle="bold"
@@ -63,17 +63,17 @@
             android:layout_row="1"
             android:background="@drawable/favoritos"
             android:maxEms="6"
-            android:text="Favoritos"
+            android:text="@string/BotonFavoritos"
             android:textColor="#3366CC"
             android:textSize="22sp"
             android:textStyle="bold" />
 
-        <Button
+        <!-- Button
             android:id="@+id/buttonRegistro"
             android:layout_column="1"
             android:layout_gravity="top"
             android:layout_row="0"
-            android:text="Button" />
+            android:text="Button" /-->
         
     </GridLayout>
 

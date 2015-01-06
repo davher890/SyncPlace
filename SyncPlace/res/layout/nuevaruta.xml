@@ -12,16 +12,15 @@
         android:orientation="horizontal" >
 
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="fill_parent"
-            android:layout_weight="4"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:orientation="vertical" >
 
             <TextView
                 android:id="@+id/textId"
-                android:layout_width="fill_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Origen:" />
+                android:text="@string/origen" />
 
             <Spinner
                 android:id="@+id/spinnerorigen"
@@ -33,16 +32,28 @@
                 android:id="@+id/textView2"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:text="Destino:" />
+                android:text="@string/destino" />
 
             <Spinner
                 android:id="@+id/spinnerdestino"
                 android:layout_width="wrap_content"
                 android:layout_height="fill_parent"
                 android:layout_weight="1" />
+            
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/mode" />
+
+            <Spinner
+                android:id="@+id/spinnermode"
+                android:layout_width="wrap_content"
+                android:layout_height="fill_parent"
+                android:layout_weight="1" />
 
             <LinearLayout
-                android:layout_width="fill_parent"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content" >
 
                 <Button
@@ -59,6 +70,7 @@
                     android:layout_height="fill_parent"
                     android:layout_weight="1"
                     android:background="@drawable/shape"
+                    android:visibility="invisible"
                     android:text="Ver Ruta" />
 
             </LinearLayout>

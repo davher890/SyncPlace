@@ -1,17 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">SyncPlace</string>
-    <string name="BotonListaLugares">Lista de Lugares</string>
-    <string name="BotonMapa">Mapa</string>
-    <string name="TextLatitud">Latitud: </string>
-    <string name="TextLongitud">Longitud: </string>
-    <string name="BotonVolver">Volver</string>
-    <string name="TextDescripcion">Descripcion:</string>
-    <string name="TextNombre">Nombre:</string>
-    <string name="TextTipo">Tipo: </string><string name="textfoto">Foto:</string>
-    <string name="guardar">Guardar</string>
-    <string name="eliminar">Eliminar</string>
-    <string name="editar">Editar</string>
+    
+    <string name="BotonListaLugares">List of Places</string>
+    <string name="BotonMapa">Map</string>
+    <string name="BotonFavoritos">Favourites</string>
+    <string name="BotonServicios">Services</string>
+    <string name="BotonRuta">Route</string>
+    
+    <string name="origen">From</string>
+    <string name="destino">To</string>
+    <string name="mode">Mode</string>
+    
+    <string name="TextLatitud">Latitude: </string>
+    <string name="TextLongitud">Longitude: </string>
+    <string name="TextDescripcion">Description:</string>
+    <string name="TextTelefono">Phone:</string>
+    <string name="TextNombre">Name:</string>
+    <string name="TextTipo">Type: </string>
+    <string name="textfoto">Photo:</string>
+    
+    <string name="volver">Back</string>
+    <string name="guardar">Save</string>
+    <string name="eliminar">Delete</string>
+    <string name="editar">Edit</string>
+    <string name="buscar">Search</string>
+    <string-array name="routeMode">
+        <item >Driving</item>
+        <item >Walking</item>
+        <item >Bicycling</item>
+    </string-array>
+    
     
   
 </resources>

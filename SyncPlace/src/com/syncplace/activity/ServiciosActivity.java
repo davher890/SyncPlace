@@ -69,8 +69,20 @@ public class ServiciosActivity extends Activity {
 		        i.putExtras(contenedor);
 		        i.putExtra("clase", "servicios");
 		        i.putExtra("servicio", textoServicio);
-		        i.putExtra("latitud", textlat.getText().toString());
-		        i.putExtra("longitud", textlng.getText().toString());		
+		        
+		        String latString = textlat.getText().toString();
+		        String lonString = textlng.getText().toString();		        
+		        double latDouble = 0.0;
+		        double lonDouble = 0.0;		        
+		        if (latString != null && !latString.equals("")){
+		        	latDouble = Double.valueOf(latString);
+		        }
+		        if (lonString != null && !lonString.equals("")){
+		        	lonDouble = Double.valueOf(lonString);
+		        }
+				i.putExtra("latitud", latDouble);
+		        
+				i.putExtra("longitud", lonDouble);		
 		        startActivity(i);
 			}
 		});    
@@ -81,8 +93,8 @@ public class ServiciosActivity extends Activity {
 			if (resultCode == RESULT_OK) {
 				Bundle contenedor = intent.getExtras();
 		        if (contenedor != null){
-		        	Double latitud = contenedor.getDouble("latitud");
-		        	Double longitud = contenedor.getDouble("longitud");		        	
+		        	double latitud = contenedor.getDouble("latitud");
+		        	double longitud = contenedor.getDouble("longitud");		        	
 		        	
 			        textlat.setText(String.valueOf(latitud));
 			        textlng.setText(String.valueOf(longitud));;    

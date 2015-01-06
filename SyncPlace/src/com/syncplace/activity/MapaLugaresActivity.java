@@ -4,10 +4,11 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
@@ -36,9 +37,8 @@ import android.content.DialogInterface.OnDismissListener;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.location.Address;
+import android.graphics.Color;
 import android.location.Criteria;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -50,7 +50,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
@@ -69,8 +68,8 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.VisibleRegion;
-import com.google.android.maps.MapController;
 import com.syncplace.ErrorDialogFragment;
 import com.syncplace.Lugar;
 import com.syncplace.SensorDB;
@@ -84,42 +83,35 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
     public final String TOKEN = "-jmUm2NVi1feTQsd_9gyoCZxCvuauwc8"; 
     public final String TOKEN_SECRET = "s_z5V6etkD3M8soELkw-vJ_N_Ng"; 
     public final String YWSID = "iXUUomsyqBkdXaypz7539A"; 
-    public final String ENCODING_SCHEME = "UTF-8"; 
+    public final String ENCODING_SCHEME = "UTF-8";
+    
+    public static final int SEARCH_ID = Menu.FIRST;
 	
-	/****** Utilizado solo para mostrar mi posiciÃ³n ******/
-	private SupportMapFragment mapFragment;
+	/****** Utilizado solo para mostrar mi posicion ******/
 	private GoogleMap map;
 	private LocationManager mLocationManager;
-	Location myLocation = null;
-	
-	
-	private LatLng myPos = null;
+	Location myLocation = null;	
 	/*****************************************************/
 	
-	Context contexto;
-	
+	private Context contexto;	
 	boolean orig = false;
-		
-	EditText direccion;	
-	LinearLayout searchPanel;
-    Button searchButton;
-    EditText searchText;
-    public static final int SEARCH_ID = Menu.FIRST;
-    MapController mc;
-    Geocoder geoCoder;
-    
-    ArrayList<Lugar> listaGPaux; 
-    ArrayList<Lugar> listaGP;
+			
+	private LinearLayout searchPanel;
+    //private Button searchButton;
+    private EditText searchText;
+     
+    private HashMap<String, Lugar> listaGP;
+    private HashMap<String, Marker> mapMarkers;
 	
-	final DecimalFormat decf = new DecimalFormat("###.####");
     private boolean isEditMode = false;
     
     //Parametros para oblener la lista de servicios 
     String servicio = null;
-    double latitud = 9999;
-    double longitud = 9999;
+    double latitud = -1;
+    double longitud = -1;
+    float radius = 0;
     
-    float currentZoom = -1;
+    float currentZoom = -1;    
 	    
 	@Override
     public void onCreate(Bundle savedInstanceState) {
@@ -133,11 +125,12 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
         FrameLayout frame = (FrameLayout) findViewById(R.id.mainFrame);
         frame.setVisibility(View.VISIBLE);
         
-        searchPanel = (LinearLayout) findViewById(R.id.searchPanel);
-        searchButton = (Button) findViewById(R.id.searchButton);
-        searchText = (EditText) findViewById(R.id.searchText);
+        //searchPanel = (LinearLayout) findViewById(R.id.searchPanel);
+        //searchButton = (Button) findViewById(R.id.searchButton);
+        //searchText = (EditText) findViewById(R.id.searchText);
         contexto = this;
 	    
+        mapMarkers = new HashMap<String, Marker>();
         dibuja_lugares();
 	            
         /****Pintamos sobre el mapa añadiendo una capa con el dibujo****/        
@@ -152,17 +145,32 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
         	}
         	else{
         		//Marcamos lugares en el mapa
-        		orig = false;
-        		servicio = contenedor.getString("servicio");
-        		latitud = contenedor.getDouble("latitud");
-        		longitud = contenedor.getDouble("longitud");
-        		//callYelp(latitud, longitud, origen, radius);
-        		/*for (int i=0;i<listaGP.size();i++){
-	        		LatLng pos = new LatLng(listaGP.get(i).getLatitud(),listaGP.get(i).getLongitud());
+        		if (contenedor.getString("clase").equals("servicios")){
+        			orig = false;
+	        		servicio = contenedor.getString("servicio");
+	        		latitud = contenedor.getDouble("latitud");
+	        		longitud = contenedor.getDouble("longitud");
 	        		
-	        		else //Creo la ruta
-	        			setMarker(pos, listaGP.get(i).getNombre(), listaGP.get(i).getDescripcion(),BitmapDescriptorFactory.fromResource(R.drawable.posicion));
-	        	}*/
+	        		if (latitud == 0.0 || longitud == 0.0){
+	        			latitud = myLocation.getLatitude();
+	        			longitud = myLocation.getLongitude();
+	        		}
+        		}
+        		else if (contenedor.getString("clase").equals("nuevaruta")){
+        			
+        			Bundle b = this.getIntent().getExtras();
+        			ArrayList<Lugar> gpList = b.getParcelableArrayList("listagp");        	        
+        			int size = gpList.size();
+        			PolylineOptions polilinea = new PolylineOptions().color(Color.BLUE)
+        				    .width(5)
+        				    .visible(true)
+        				    .zIndex(30);;
+					for(int i=0;i<size;i++){
+						Lugar l = gpList.get(i);
+						polilinea.add(new LatLng(l.getLatitud(), l.getLongitud()));
+					}
+					map.addPolyline(polilinea);
+        		}
         	}
         }
         
@@ -174,37 +182,23 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
 				Lugar l = null;
 				
 				if (listaGP == null){
-					SensorDB usdbh = new SensorDB(contexto, "DBSensor", null, 1);
+					SensorDB usdbh = new SensorDB(contexto);
 					SQLiteDatabase db = usdbh.getWritableDatabase();
 					
-					l = usdbh.buscaLugar(db, Integer.parseInt(marker.getTitle()));
-					if (l == null)
-						return false;					
+					l = usdbh.buscaLugar(db, Integer.parseInt(marker.getTitle()));					
 				}	
-				else{				
-					for (int i=0; i< listaGP.size();i++){
-						if (String.valueOf(listaGP.get(i).getId()).equals(marker.getTitle())){
-							l = listaGP.get(i);
-						}
-					}
+				else{					
+					l = listaGP.get(marker.getTitle());
+					
+				}
+				
+				if (l == null){
+					return false;
 				}
 				LayoutInflater inflater = (LayoutInflater) contexto.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 				View v = inflater.inflate(R.layout.dialoglugar, null);
-		    	
-				EditText etLat = (EditText)v.findViewById(R.id.editTextLat);
-				etLat.setText(String.valueOf(l.getLatitud()));
-				EditText etLon = (EditText)v.findViewById(R.id.editTextLon);
-				etLon.setText(String.valueOf(l.getLongitud()));
-				EditText etInfo = (EditText)v.findViewById(R.id.editTextInfo);
-				etInfo.setText(l.getDescripcion());
-				EditText etNombre = (EditText)v.findViewById(R.id.editTextNombre);
-				etNombre.setText(l.getNombre());
-				EditText etTipo = (EditText)v.findViewById(R.id. editTextTipo);
-				etTipo.setText(l.getTipo());
-				EditText editId = (EditText)v.findViewById(R.id.textIdGone);
-				editId.setText(String.valueOf(l.getId()));
 				
-		        ErrorDialogFragment alert = new ErrorDialogFragment();
+		        ErrorDialogFragment alert = new ErrorDialogFragment(l);
 		        AlertDialog createDialogLugar = alert.createDialogLugar(contexto, v, "");
 		        createDialogLugar.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		        createDialogLugar.show();
@@ -231,13 +225,8 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
 	    		else{
 	    			LayoutInflater inflater = (LayoutInflater) contexto.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 					View v = inflater.inflate(R.layout.dialoglugar, null);
-			    	
-					EditText etLat = (EditText)v.findViewById(R.id.editTextLat);
-					etLat.setText(String.valueOf(point.latitude));
-					EditText etLon = (EditText)v.findViewById(R.id.editTextLon);
-					etLon.setText(String.valueOf(point.longitude));
-					
-			        ErrorDialogFragment alert = new ErrorDialogFragment();
+										
+			        ErrorDialogFragment alert = new ErrorDialogFragment(new Lugar (point.latitude, point.longitude));
 			        AlertDialog createDialogLugar = alert.createDialogLugar(contexto, v,"¿Desea almacenar este lugar?");
 			        createDialogLugar.setOnDismissListener(new OnDismissListener() {
 						
@@ -246,36 +235,23 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
 							dibuja_lugares();							
 						}
 					});
+			        
 					createDialogLugar.show();
 	    		}
             }
         });
 
         /***************************************************************/
-        searchButton.setOnClickListener(new View.OnClickListener() {
+        /*searchButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View view) {
                 String searchFor = searchText.getText().toString();
                 
-                geoCoder = new Geocoder(getBaseContext(), Locale.getDefault());
-
-                try {
-                    List<Address> addresses =
-                           geoCoder.getFromLocationName(searchFor, 5);
-                    if (addresses.size() > 0) {
-                        
-                    	map.clear();
-                    	LatLng Pos = new LatLng(addresses.get(0).getLatitude(),addresses.get(0).getLongitude());
-                        map.addMarker(new MarkerOptions().position(Pos)
-                        								  .title(searchFor)
-                        								  .icon(BitmapDescriptorFactory.fromResource(R.drawable.tick)));
-                	    map.moveCamera(CameraUpdateFactory.newLatLngZoom(Pos, 15));
-                	    map.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }                
-            }            
-        });        
+                String url = "http://maps.google.com/maps/api/geocode/json?address=" + searchFor + "&sensor=false";
+                                
+                GetService gs = new GetService(url, contexto);
+                gs.execute();
+            }
+        });*/
 	}
 	
 	public boolean isEditMode(){
@@ -286,9 +262,31 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
 		return this.map;
 	}
 	
+	public void getLatLongFromAddress(String response) {
+		        
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject = new JSONObject(response);
+
+            double lng = ((JSONArray)jsonObject.get("results")).getJSONObject(0)
+                .getJSONObject("geometry").getJSONObject("location")
+                .getDouble("lng");
+
+            double lat = ((JSONArray)jsonObject.get("results")).getJSONObject(0)
+                .getJSONObject("geometry").getJSONObject("location")
+                .getDouble("lat");
+            
+            LatLng position = new LatLng(lat, lng);
+			setMarker(position, searchText.getText().toString(), null);
+            centrarCamara(position, 20);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+	
 	public void dibuja_lugares(){
 		
-		SensorDB usdbh = new SensorDB(this, "DBSensor", null, 1);
+		SensorDB usdbh = new SensorDB(this);
 		SQLiteDatabase db = usdbh.getWritableDatabase();
 	    
 		String sql = "SELECT * FROM Lugar ";
@@ -303,11 +301,12 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
 	    							fila.getString(2), 
 	    							Double.valueOf(fila.getString(3)).doubleValue(), 
 	    							Double.valueOf(fila.getString(4)).doubleValue(), 
-	    							fila.getString(5));
+	    							fila.getString(5),
+	    							fila.getString(6));
 	    	
 	    		LatLng pos = new LatLng(l.getLatitud(),l.getLongitud());
 
-	    		setMarker(pos, l.getId(), null);
+	    		setMarker(pos, String.valueOf(l.getId()), null);
 	    			    		
 	    	} while(fila.moveToNext());	
 	    }
@@ -317,26 +316,7 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
     	//Cerramos la base de datos
 	    db.close();
 	    fila.close();
-	} 
-	
-	/*@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		
-	    // Decide what to do based on the original request code
-	    switch (requestCode) {
-
-	        case CONNECTION_FAILURE_RESOLUTION_REQUEST:
-	            switch (resultCode) {
-	                case Activity.RESULT_OK:
-	                    mLocationManager.connect();
-	                    break;
-	            }
-            default:
-            	centrarCamara(myPos);
-            	dibuja_lugares();
-            	break;
-	    }
-	}*/
+	}
 	
 	@Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -365,20 +345,24 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
         searchPanel.setVisibility(View.INVISIBLE);
     }
 
-	private void centrarCamara(LatLng posicion){		
-		// Move the camera instantly to Sydney with a zoom of 15.
-		map.moveCamera(CameraUpdateFactory.newLatLngZoom(posicion, 15));
-		// Zoom in, animating the camera.
-		map.animateCamera(CameraUpdateFactory.zoomIn());
-		// Zoom out to zoom level 10, animating with a duration of 2 seconds.
-		map.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);		
+	private void centrarCamara(LatLng posicion, int zoom){		
+		map.moveCamera(CameraUpdateFactory.newLatLngZoom(posicion, 7));
+		map.animateCamera(CameraUpdateFactory.zoomTo(zoom), 500, null);		
 	}
 	
-	private void setMarker(LatLng position, int id, BitmapDescriptor icon) {
+	private void setMarker(LatLng position, String id, BitmapDescriptor icon) {
 		// Agregamos marcadores para indicar sitios de interéses.
 		if (icon == null)
 			icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
-		map.addMarker(new MarkerOptions().title(String.valueOf(id)).position(position).icon(icon));
+		
+		Marker marker = map.addMarker(new MarkerOptions().title(id).position(position).icon(icon));
+		mapMarkers.put(id, marker);
+	}
+	public void removeMarker(int id){
+		Marker marker = mapMarkers.get(String.valueOf(id));
+		if (marker!=null){
+			marker.remove();
+		}
 	}
 	
 	private void isGooglePlayServicesAvailable() {
@@ -400,6 +384,7 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
  
             // Getting GoogleMap object from the fragment
             map = fm.getMap();
+            map.setOnCameraChangeListener(this);
  
             // Enabling MyLocation Layer of Google Map
             map.setMyLocationEnabled(true);
@@ -442,71 +427,10 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
             mLocationManager.requestLocationUpdates(provider, 20000, 0, this);
         }
 	}
-
-	/*
-	 * Called by Location Services when the request to connect the
-	 * client finishes successfully. At this point, you can
-	 * request the current location or start periodic updates
-	 */
-	/*@Override
-	public void onConnected(Bundle dataBundle) {
-	    // Display the connection status
-	    Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
-	    Location location = mLocationManager.getLastLocation();
-	    if (location != null){
-		    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-		    CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
-		    map.animateCamera(cameraUpdate);
-	    }
-	}*/
-
-	/*
-	 * Called by Location Services if the connection to the
-	 * location client drops because of an error.
-	 */
-	/*@Override
-	public void onDisconnected() {
-	    // Display the connection status
-	    Toast.makeText(this, "Disconnected. Please re-connect.", Toast.LENGTH_SHORT).show();
-	}*/
-
-	/*
-	 * Called by Location Services if the attempt to
-	 * Location Services fails.
-	 */
-	/*@Override
-	public void onConnectionFailed(ConnectionResult connectionResult) {*/
-	    /*
-	     * Google Play services can resolve some errors it detects.
-	     * If the error has a resolution, try sending an Intent to
-	     * start a Google Play services activity that can resolve
-	     * error.
-	     */
-	    /*if (connectionResult.hasResolution()) {
-	        try {
-	            // Start an Activity that tries to resolve the error
-	            connectionResult.startResolutionForResult(
-	                    this,
-	                    CONNECTION_FAILURE_RESOLUTION_REQUEST);*/
-	            /*
-	            * Thrown if Google Play services canceled the original
-	            * PendingIntent
-	            */
-	       /* } catch (IntentSender.SendIntentException e) {
-	            // Log the error
-	            e.printStackTrace();
-	        }
-	    } else {
-	       Toast.makeText(getApplicationContext(), "Sorry. Location services not available to you", Toast.LENGTH_LONG).show();
-	    }
-	}*/
 	
 	private float calculateZoomLevel_to_Radius() {
 		VisibleRegion vr = map.getProjection().getVisibleRegion();
 		double left = vr.latLngBounds.southwest.longitude;
-		double top = vr.latLngBounds.northeast.latitude;
-		double right = vr.latLngBounds.northeast.longitude;
-		double bottom = vr.latLngBounds.southwest.latitude;
 		
 		Location middleLeftCornerLocation = new Location("middleLeftcorner");//(center's latitude,vr.latLngBounds.southwest.longitude)
 		middleLeftCornerLocation.setLatitude(vr.latLngBounds.getCenter().latitude);
@@ -518,9 +442,9 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
 		return center.distanceTo(middleLeftCornerLocation);//calculate distane between middleLeftcorner and center 
 	}
 	
-	private ArrayList<Lugar> callYelp(double latitud, double longitud, String servicio, float radius) {
+	private HashMap<String, Lugar> callYelp(double latitud, double longitud, String servicio, float radius) {
 		
-		ArrayList<Lugar> listagp = null;
+		HashMap<String, Lugar> listagp = null;
 		
 		String limit = "20"; 
 		try { 
@@ -551,30 +475,73 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
 				respJSON = new JSONObject(result);
 			              
 	            JSONArray businesses = respJSON.getJSONArray("businesses");
-	            listagp = new ArrayList<Lugar>();
+	            listagp = new HashMap<String, Lugar>();
 	            
 	            for (int i=0;i<businesses.length();i++){            	
-	            	JSONObject jsonObject = businesses.getJSONObject(i);
+	            	JSONObject jsonObject = null;
+	            	JSONObject location = null;
+	            	JSONObject coordinate = null;
+	            	String nombre  = null;
+	            	String id = null;
+	            	double lat = -1.0;
+	            	double lon = -1.0;
 	            	
-	            	JSONObject location = jsonObject.getJSONObject("location");
-	            	JSONObject coordinate = location.getJSONObject("coordinate");
+	            	if (!businesses.isNull(i)){
+	            		jsonObject = businesses.getJSONObject(i);
+	            	}
 	            	
+	            	if (!jsonObject.isNull("location")){
+	            		location = jsonObject.getJSONObject("location");
+	            	}
+	            	
+	            	if (!location.isNull("coordinate")){
+	            		coordinate = location.getJSONObject("coordinate");
+	            		if (!coordinate.isNull("latitude")){
+		            		lat	= coordinate.getDouble("latitude");
+		            	}		            	
+		            	if (!coordinate.isNull("longitude")){
+		            		lon = coordinate.getDouble("longitude");
+		            	}
+	            	}	            	
 	            		            	
-	            	String nombre = jsonObject.getString("name");           	
+	            	if (!jsonObject.isNull("name")){
+	            		nombre = jsonObject.getString("name");
+	            	}
 	            	
-	            	String desc = "Dirección: "+location.getString("address")+
-	            				  "\nCiudad: "+location.getString("city")+
-	            				  //"\nPais: "+location.getString("country")+
-	            				  "\nDistancia: "+jsonObject.getString("distance")+
-	            				  "\nUrl: "+jsonObject.getString("url")+
-	            				  "\nUrl móvil: "+jsonObject.getString("mobile_url")+
-	            				  "\nCerrado: "+jsonObject.getString("is_closed")/*+
-	            				  "\nTeléfono: "+jsonObject.getString("phone")*/;
-	            	Double lat	= coordinate.getDouble("latitude");
-	            	Double lon = coordinate.getDouble("longitude");
+	            	if (!jsonObject.isNull("id")){
+	            		id = jsonObject.getString("id");
+	            	}
+	            	
+	            	StringBuilder desc = new StringBuilder();
+	            	if (!location.isNull("address")){
+	            		desc.append("Dirección: "+location.getString("address"));
+	            	}
+	            	if (!location.isNull("city")){
+	            		desc.append("\nCiudad: "+location.getString("city"));
+	            	}
+	            	if (!location.isNull("country_code")){
+	            		desc.append("\nPais: "+location.getString("country_code"));
+	            	}
+	            	if (!jsonObject.isNull("distance")){
+	            		desc.append("\nDistancia: "+jsonObject.getString("distance"));
+	            	}
+	            	if (!jsonObject.isNull("url")){
+	            		desc.append("\nUrl: "+jsonObject.getString("url"));
+	            	}
+	            	if (!jsonObject.isNull("mobile_url")){
+	            		desc.append("\nUrl móvil: "+jsonObject.getString("mobile_url"));
+	            	}
+	            	if (!jsonObject.isNull("is_closed")){
+	            		desc.append("\nCerrado: "+jsonObject.getString("is_closed"));
+	            	}
+	            	String phone = null;
+	            	if (!jsonObject.isNull("phone")){
+	            		phone = jsonObject.getString("phone");
+	            	}
+	            	
 		            //Introducimos punto de origen
-	                Lugar gp = new Lugar(0, nombre, desc, lat, lon, servicio);
-	                listagp.add(gp);
+	                Lugar gp = new Lugar(i, nombre, desc.toString(), lat, lon, servicio, phone);
+	                listagp.put(id, gp);
 	            }
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
@@ -605,8 +572,7 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
 	}
 	
 	@Override
-	public void onCameraChange(CameraPosition pos) {
-		
+	public void onCameraChange(CameraPosition pos) {		
         if (pos.zoom != currentZoom && servicio != null){
             currentZoom = pos.zoom;
             
@@ -618,9 +584,14 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
             else{
     	        listaGP = callYelp(myLocation.getLatitude(), myLocation.getLongitude(), servicio, radio);
             }
-        	for (int i=0;i<listaGP.size();i++){
-        		LatLng posi = new LatLng(listaGP.get(i).getLatitud(),listaGP.get(i).getLongitud());
-        		setMarker(posi, listaGP.get(i).getId(), BitmapDescriptorFactory.fromResource(R.drawable.tick));
+            
+            map.clear();
+        	Iterator it = listaGP.entrySet().iterator();
+        	while (it.hasNext()) {
+        		Map.Entry<String, Lugar> e = (Entry<String, Lugar>) it.next();
+        		
+        		LatLng posi = new LatLng(((Lugar)e.getValue()).getLatitud(),((Lugar)e.getValue()).getLongitud());
+        		setMarker(posi, (e.getKey()).toString(), BitmapDescriptorFactory.fromResource(R.drawable.tick));
         	}            
         }
 	}
@@ -637,7 +608,7 @@ public class MapaLugaresActivity extends FragmentActivity implements LocationLis
  
         // Creating a LatLng object for the current location
         LatLng latLng = new LatLng(latitude, longitude);
-        centrarCamara(latLng);
+        centrarCamara(latLng, 17);
 	}
 
 	@Override

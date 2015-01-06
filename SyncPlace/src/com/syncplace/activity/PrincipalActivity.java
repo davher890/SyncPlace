@@ -26,7 +26,7 @@ public class PrincipalActivity extends Activity {
     String URL_connect="http://"+IP_Server+"/droidlogin/acces.php";//ruta en donde estan nuestros archivos
 	
 	MapController mc;
-	private AdView adView;
+	//private AdView adView;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -133,7 +133,7 @@ public class PrincipalActivity extends Activity {
 		
 		boolean flag_vacia=false;
 		
-		SensorDB usdbh = new SensorDB(this, "DBSensor", null, 1);
+		SensorDB usdbh = new SensorDB(this);
 		SQLiteDatabase db = usdbh.getWritableDatabase();
 	    
 		if(db != null){

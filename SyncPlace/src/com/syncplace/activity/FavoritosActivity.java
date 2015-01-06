@@ -17,7 +17,6 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.EditText;
 import android.widget.ListView;
 
 import com.syncplace.ErrorDialogFragment;
@@ -51,21 +50,8 @@ public class FavoritosActivity extends Activity {
 	            
 	    		LayoutInflater inflater = (LayoutInflater) contexto.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 				View v = inflater.inflate(R.layout.dialoglugar, null);
-		    	
-				EditText etLat = (EditText)v.findViewById(R.id.editTextLat);
-				etLat.setText(String.valueOf(l.getLatitud()));
-				EditText etLon = (EditText)v.findViewById(R.id.editTextLon);
-				etLon.setText(String.valueOf(l.getLongitud()));
-				EditText etInfo = (EditText)v.findViewById(R.id.editTextInfo);
-				etInfo.setText(l.getDescripcion());
-				EditText etNombre = (EditText)v.findViewById(R.id.editTextNombre);
-				etNombre.setText(l.getNombre());
-				EditText etTipo = (EditText)v.findViewById(R.id.editTextTipo);
-				etTipo.setText(l.getTipo());				
-				EditText textId = (EditText)v.findViewById(R.id.textIdGone);
-				textId.setText(""+l.getId());
 				
-		        ErrorDialogFragment alert = new ErrorDialogFragment();
+		        ErrorDialogFragment alert = new ErrorDialogFragment(l);
 		        AlertDialog createDialogLugar = alert.createDialogLugar(contexto, v, "");
 		        createDialogLugar.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 		        createDialogLugar.setOnDismissListener(new OnDismissListener() {					
@@ -83,7 +69,7 @@ public class FavoritosActivity extends Activity {
 	
 	private ArrayList<Lugar> consultaFavoritos(){
 		
-		SensorDB usdbh = new SensorDB(this, "DBSensor", null, 1);
+		SensorDB usdbh = new SensorDB(this);
 		SQLiteDatabase db = usdbh.getWritableDatabase();
 		 
 		String sql = "SELECT * FROM Lugar";
@@ -100,8 +86,9 @@ public class FavoritosActivity extends Activity {
 			    Double lat = Double.valueOf(fila.getString(3)).doubleValue();
 			    Double lon = Double.valueOf(fila.getString(4)).doubleValue();
 			    String tipo = fila.getString(5);
+			    String phone = fila.getString(6);
 			    				    		
-			    Lugar s = new Lugar(id.intValue(), nombre, descripcion, lat, lon, tipo);
+			    Lugar s = new Lugar(id.intValue(), nombre, descripcion, lat, lon, tipo, phone);
 			    lug.add(s);
 			    
 			} while(fila.moveToNext());

@@ -2,8 +2,6 @@ package com.syncplace;
 
 import java.util.List;
 
-import com.syncplace.v2.R;
-
 import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -12,17 +10,19 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.syncplace.v2.R;
+
 public class FavoritoListAdapter extends BaseAdapter {
 	
 	private Activity activity;
 	List<Lugar> favoritos;
 	private static LayoutInflater inflater=null;
 	
-	 public FavoritoListAdapter(Activity a, List<Lugar> favoritos) {
-	        activity = a;
-	        this.favoritos = favoritos;
-	        inflater = (LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-	    }
+	public FavoritoListAdapter(Activity a, List<Lugar> favoritos) {
+		activity = a;
+		this.favoritos = favoritos;
+		inflater = (LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+	}
 
 	@Override
 	public int getCount() {

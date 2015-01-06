@@ -1,11 +1,14 @@
 package com.syncplace.activity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Locale;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -16,28 +19,28 @@ import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.syncplace.CallYelpService;
+import com.syncplace.GetService;
 import com.syncplace.Lugar;
 import com.syncplace.SensorDB;
 import com.syncplace.v2.R;
 
 public class NuevaRuta extends Activity {
 	
-	TextView ruta;
-	Spinner origen;
-	Spinner destino;
-	Button calcularuta;
-	Button verruta;
-	NuevaRuta contexto;
+	private TextView ruta;
+	private Spinner origen;
+	private Spinner destino;
+	private Spinner modo;
+	private Button calcularuta;
+	private Button verruta;
+	private NuevaRuta contexto;
 	
-	ArrayList<Lugar> listaGP = new ArrayList<Lugar>();	
+	private ArrayList<Lugar> listaGP = new ArrayList<Lugar>();	
 	
-	ArrayList<String> lug = new ArrayList<String>();
+	private ArrayList<String> lug = new ArrayList<String>();
+	private HashMap<String, Lugar> mapLugares = new HashMap<String, Lugar>();
 	
-	String strorigen;
-	String strdestino;
-	Lugar lorigen;
-	Lugar ldestino;
+	private Lugar lorigen;
+	private Lugar ldestino;
 	
 	/** Called when the activity is first created. */
     public void onCreate(Bundle savedInstanceState) {
@@ -48,7 +51,8 @@ public class NuevaRuta extends Activity {
         origen			= (Spinner) findViewById(R.id.spinnerorigen);
         destino 		= (Spinner) findViewById(R.id.spinnerdestino);
         calcularuta		= (Button) findViewById(R.id.buttonCalcula);
-        verruta		= (Button) findViewById(R.id.buttonVer);
+        verruta			= (Button) findViewById(R.id.buttonVer);
+        modo			= (Spinner) findViewById(R.id.spinnermode);
         
         llenaSpinner();
         
@@ -58,24 +62,25 @@ public class NuevaRuta extends Activity {
 			
 			@Override
 			public void onClick(View v) {
-				SensorDB usdbh = new SensorDB(contexto, "DBSensor", null, 1);
+				SensorDB usdbh = new SensorDB(contexto);
 				SQLiteDatabase db = usdbh.getWritableDatabase();
 				
-				//lorigen = usdbh.buscaLugar(db, lug.get(origen.getSelectedItemPosition()));
-				//ldestino = usdbh.buscaLugar(db, lug.get(destino.getSelectedItemPosition()));
+				lorigen = mapLugares.get(origen.getSelectedItem());
+				ldestino = mapLugares.get(destino.getSelectedItem());
 				
 				if (lorigen == null || ldestino == null){
 					finish();
 				}
 
-				db.close();			
+				db.close();
 				
 				String url = "http://maps.googleapis.com/maps/api/directions/json?" +
 						"origin="+lorigen.getLatitud()+","+lorigen.getLongitud()+"&" +
 						"destination="+ldestino.getLatitud()+","+ldestino.getLongitud()+"&" +
-						"region=es&language=es&sensor=false";
+						"region=es&language=es&sensor=false&" + 
+						"mode=" + modo.getSelectedItem().toString().toLowerCase(Locale.getDefault());
 
-				CallYelpService cys = new CallYelpService(url,contexto);				
+				GetService cys = new GetService(url,contexto);				
 				cys.execute();
 			}
 		});
@@ -84,31 +89,28 @@ public class NuevaRuta extends Activity {
 			
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
-                /*Intent i=new Intent(NuevaRuta.this,MapaLugaresActivity.class);
-                Bundle contenedor=new Bundle();
-                contenedor.putParcelable("gplist",listaGP);
-                i.putExtras(contenedor);
+				// TODO Auto-generated method stub				
+                Intent i=new Intent(NuevaRuta.this,MapaLugaresActivity.class);
                 i.putExtra("clase","nuevaruta");
-                startActivity(i);*/				
+                
+                Bundle b = new Bundle();
+                b.putParcelableArrayList("listagp", listaGP);
+                i.putExtras(b);
+                startActivity(i);			
 			}
 		});
     }
     
     public void LanzaMapaRuta(String respStr){
     	
-    	try{          
-	        
+    	try{
 	        JSONObject respJSON  = new JSONObject(respStr);                
 	        JSONArray routes 	 = respJSON.getJSONArray("routes");
 	        JSONObject bounds	 = routes.getJSONObject(0).getJSONObject("bounds");
 	        JSONObject northeast = bounds.getJSONObject("northeast");
-	        //JSONObject southwest = bounds.getJSONObject("northeast");
 	        
 	        Double lat1 = northeast.getDouble("lat");
-	        Double lng1 = northeast.getDouble("lng");     
-	        //Double lat2 = southwest.getDouble("lat");
-	        //Double lng2 = southwest.getDouble("lng");
+	        Double lng1 = northeast.getDouble("lng");  
 	        ruta.setText("Origen :"+lorigen.getNombre()+"\nDestino :"+ldestino.getNombre()+"\n");
 	        
 	        JSONArray legs = routes.getJSONObject(0).getJSONArray("legs");
@@ -120,32 +122,34 @@ public class NuevaRuta extends Activity {
 	        ruta.setText(ruta.getText()+"\nDistancia: "+valuedistance+"\nDuracion: "+valueduration);
 	        
 	        JSONArray steps = legs.getJSONObject(0).getJSONArray("steps");
-	        		                
+	        
+	        listaGP.clear();
 	        int i = 0;
 	        while (i<steps.length()) {
-	        	ruta.setText(ruta.getText()+"\n· "+steps.getJSONObject(i).getString("html_instructions").toString());
+	        	ruta.setText(ruta.getText()+"\n - "+steps.getJSONObject(i).getString("html_instructions").toString());
 	        	
-	        	lat1 = steps.getJSONObject(i).getJSONObject("end_location").getDouble("lat");
-	            lng1 = steps.getJSONObject(i).getJSONObject("end_location").getDouble("lng");
+	        	lat1 = steps.getJSONObject(i).getJSONObject("start_location").getDouble("lat");
+	            lng1 = steps.getJSONObject(i).getJSONObject("start_location").getDouble("lng");
 	            
-	            //Introducimos punto de origen
-	            Lugar gp = new Lugar(0, "", "", lat1, lng1, "");
-	            listaGP.add(gp);
-	            
+	            //Introducimos punto de origen	    		
+	    		listaGP.add(new Lugar(lat1, lng1));
 	        	i++;
 			}
+	        listaGP.add(ldestino);
 	        ruta.setText(ruta.getText().toString().replace("<b>",""));
 	        ruta.setText(ruta.getText().toString().replace("</b>",""));
+	        ruta.setText(ruta.getText().toString().replace("</div>",""));
+	        verruta.setVisibility(View.VISIBLE);
 	    }
 	    catch(Exception ex)
 	    {
-	            System.out.println("ServicioRest Error!"+ex);
+	    	System.out.println("ServicioRest Error!"+ex);
 	    }
     }
     
     public void llenaSpinner(){
     	
-    	SensorDB usdbh = new SensorDB(this, "DBSensor", null, 1);
+    	SensorDB usdbh = new SensorDB(this);
 		SQLiteDatabase db = usdbh.getWritableDatabase();
 		 
 		String sql = "SELECT * FROM Lugar";
@@ -160,9 +164,11 @@ public class NuevaRuta extends Activity {
 			    Double lat = Double.valueOf(fila.getString(3)).doubleValue();
 			    Double lon = Double.valueOf(fila.getString(4)).doubleValue();
 			    String tipo = fila.getString(5);
+			    String phone = fila.getString(6);
 			    				    		
-			    Lugar s = new Lugar(0, nombre, descripcion, lat, lon, tipo);
+			    Lugar s = new Lugar(0, nombre, descripcion, lat, lon, tipo, phone);
 			    lug.add(s.getNombre());
+			    mapLugares.put(s.getNombre(), s);
 			    
 			} while(fila.moveToNext());
 		}
@@ -177,5 +183,8 @@ public class NuevaRuta extends Activity {
 		spinner_adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		origen.setAdapter(spinner_adapter);
 		destino.setAdapter(spinner_adapter);
+		
+		ArrayAdapter<CharSequence> spinner_mode_adapter = ArrayAdapter.createFromResource( this, R.array.routeMode , android.R.layout.simple_spinner_item);
+		modo.setAdapter(spinner_mode_adapter);
     }
 }

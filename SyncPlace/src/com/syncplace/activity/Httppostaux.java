@@ -14,6 +14,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONArray;
 import org.json.JSONException;
+
 import android.util.Log;
 /*CLASE AUXILIAR PARA EL ENVIO DE PETICIONES A NUESTRO SISTEMA
  * Y MANEJO DE RESPUESTA.*/

@@ -9,7 +9,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/shape"
-        android:text="Seleccione origen"
+        android:text="@string/origen"
         android:textSize="15sp"
         android:textStyle="bold" />
 
@@ -21,7 +21,7 @@
             android:id="@+id/textId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Latitud: "
+            android:text="@string/TextLatitud"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <TextView
@@ -41,7 +41,7 @@
             android:id="@+id/textView2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Longitud: "
+            android:text="@string/TextLongitud"
             android:textAppearance="?android:attr/textAppearanceLarge" />
 
         <TextView
@@ -63,7 +63,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/shape"
-        android:text="Buscar"
+        android:text="@string/buscar"
         android:textSize="15sp"
         android:textStyle="bold" />
 
